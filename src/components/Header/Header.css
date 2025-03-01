@@ -1,0 +1,41 @@
+.header-container {
+  background: transparent;
+  padding: 10px 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 100px;
+
+}
+
+.logo {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #004e89;
+  transition: color 0.3s;
+}
+
+.nav-links {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px; 
+  background-color: #004e89; 
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.nav-button:hover {
+  background-color: #003566;
+}
