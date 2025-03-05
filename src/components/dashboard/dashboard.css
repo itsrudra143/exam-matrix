@@ -1,0 +1,300 @@
+/* dashboard.css */
+.dashboard-container {
+  font-family: "Segoe UI", Arial, sans-serif;
+  padding: 24px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.dashboard-content {
+  background-color: #fff;
+  padding: 28px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.student-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding: 24px;
+  /* background: linear-gradient(135deg, #4a90e2 0%, #6c5ce7 100%); */
+  background-color: #003566;
+  border-radius: 12px;
+  color: white;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.student-info h2 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  color: white;
+}
+
+.student-info p {
+  margin: 4px 0;
+  font-size: 15px;
+  opacity: 0.9;
+}
+.final-score {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.score-radar {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.progress-circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  transform-origin: 60px 60px;
+}
+
+.circle-background {
+  fill: none;
+  stroke: rgb(255, 255, 255);
+  stroke-width: 12;
+}
+
+.circle-progress {
+  fill: none;
+  stroke: hsl(204, 96%, 54%);
+  stroke-width: 13;
+  stroke-linecap: round;
+}
+
+.score-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.score-percentage {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.score-grade {
+  font-size: 20px;
+  opacity: 0.9;
+  color: #fff;
+}
+/* 
+.final-score {
+  text-align: center;
+}
+
+.score-radar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.score-percentage {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.score-grade {
+  font-size: 20px;
+  opacity: 0.9;
+} */
+
+.full-width-section {
+  margin: 24px 0;
+}
+
+.marks-section {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.marks-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.marks-table th {
+  background-color: #003566;
+  color: white;
+  padding: 16px;
+  text-align: left;
+  font-size: 16px;
+}
+
+.marks-table td {
+  padding: 16px;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 15px;
+}
+
+.grade-A {
+  color: #2ecc71;
+}
+.grade-B {
+  color: #f1c40f;
+}
+.grade-C {
+  color: #e74c3c;
+}
+.grade-B + {
+  color: #f39c12;
+}
+
+.activities-section {
+  margin: 24px 0;
+}
+
+.activities-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.activity-item {
+  background: #f8f9fa;
+  padding: 24px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid #e9ecef;
+}
+
+.activity-grade {
+  font-size: 28px;
+  font-weight: 700;
+  color: #003566;
+  margin-bottom: 12px;
+}
+
+.activity-progress {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #1aa0fa;
+  transition: width 0.3s ease;
+}
+
+.grade-details {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.grade-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.grade-table th {
+  background-color: #003566;
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+}
+
+.grade-table td {
+  padding: 16px;
+  border-bottom: 1px solid #e9ecef;
+  text-align: center;
+  font-size: 15px;
+}
+
+.line-graph-section {
+  margin: 24px 0;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.line-graph-container {
+  position: relative;
+  width: 100%;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.line-graph {
+  width: 100%;
+  height: 400px;
+}
+
+.axis-line {
+  stroke: #003566;
+  stroke-width: 2;
+}
+
+.grid-line {
+  stroke: #e9ecef;
+  stroke-width: 1;
+  opacity: 0.7;
+}
+
+.axis-label {
+  font-size: 12px;
+  fill: #666;
+}
+
+.data-line {
+  fill: none;
+  stroke: #1aa0fa;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.data-point {
+  fill: #1aa0fa;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.line-graph {
+  height: 450px; /* Increased height to accommodate labels */
+}
+
+.axis-label {
+  font-size: 12px;
+  fill: #666;
+  dominant-baseline: middle; /* Better vertical alignment */
+}
