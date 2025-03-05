@@ -6,7 +6,6 @@ import StudentDashboard from "./components/dashboard/dashboard";
 import AdminDashboard from "./components/admin-dashboard/admindashboard";
 import StudentProfileForm from "./components/student-profile/studentprofile";
 import AdminProfileForm from "./components/admin-profile/adminprofile";
-import ExamMatrix from "./components/overview-students/overviewstudents";
 
 const App = () => {
   return (
@@ -17,7 +16,6 @@ const App = () => {
       {/* <AdminDashboard /> */}
       {/* <StudentProfileForm /> */}
       {/* <AdminProfileForm /> */}
-      <ExamMatrix />
       <Footer />
     </div>
   );
