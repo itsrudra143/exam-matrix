@@ -7,6 +7,7 @@ import AdminDashboard from "./components/admin-dashboard/admindashboard";
 import StudentProfileForm from "./components/student-profile/studentprofile";
 import AdminProfileForm from "./components/admin-profile/adminprofile";
 import StudentTest from "./components/student-test/StudentTest";
+import LoginForm from "./components/login-form/Login";
 
 const App = () => {
   return (
@@ -17,7 +18,8 @@ const App = () => {
       {/* <AdminDashboard /> */}
       {/* <StudentProfileForm /> */}
       {/* <AdminProfileForm /> */}
-      <StudentTest />
+      {/* <StudentTest /> */}
+      <LoginForm />
       <Footer />
     </div>
   );
