@@ -14,10 +14,10 @@ const App = () => {
       <Header />
       {/* <Hero /> */}
       {/* <StudentDashboard /> */}
-      <AdminDashboard />
+      {/* <AdminDashboard /> */}
       {/* <StudentProfileForm /> */}
       {/* <AdminProfileForm /> */}
-      {/* <StudentTest /> */}
+      <StudentTest />
       <Footer />
     </div>
   );

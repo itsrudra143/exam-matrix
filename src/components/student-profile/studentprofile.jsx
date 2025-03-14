@@ -10,10 +10,14 @@ const StudentProfileForm = () => {
     dateOfBirth: "",
     gender: "",
     groupName: "",
+    studentId: "",
     fatherName: "",
     fatherPhoneNumber: "",
+    motherName: "",
+    motherPhoneNumber: "",
     currentSemester: "",
     batch: "",
+    program: "",
     address: {
       street: "",
       city: "",
@@ -52,7 +56,8 @@ const StudentProfileForm = () => {
       <form onSubmit={handleSubmit} className="form-container">
         <h2 className="form-title">Student Profile</h2>
 
-        <div className="form-section personal-info">
+        <div className="form-content">
+          {/* Personal Information */}
           <h3 className="section-title">Personal Information</h3>
           <div className="form-grid">
             <div className="input-group">
@@ -136,12 +141,42 @@ const StudentProfileForm = () => {
                 <option value="prefer-not-to-say">Prefer Not to Say</option>
               </select>
             </div>
+            <div className="input-group">
+              <label htmlFor="studentId">Student ID</label>
+              <input
+                type="text"
+                id="studentId"
+                name="studentId"
+                value={profile.studentId}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="e.g., STU-12345"
+                required
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="form-section academic-info">
+          {/* Academic Information */}
           <h3 className="section-title">Academic Information</h3>
           <div className="form-grid">
+            <div className="input-group">
+              <label htmlFor="program">Program</label>
+              <select
+                id="program"
+                name="program"
+                value={profile.program}
+                onChange={handleChange}
+                className="form-select"
+                required
+              >
+                <option value="">Select Program</option>
+                <option value="bs-cs">BS Computer Science</option>
+                <option value="bs-se">BS Software Engineering</option>
+                <option value="bs-ds">BS Data Science</option>
+                <option value="bs-ai">BS Artificial Intelligence</option>
+                <option value="bs-ee">BS Electrical Engineering</option>
+              </select>
+            </div>
             <div className="input-group">
               <label htmlFor="currentSemester">Current Semester</label>
               <input
@@ -187,9 +222,8 @@ const StudentProfileForm = () => {
               </select>
             </div>
           </div>
-        </div>
 
-        <div className="form-section guardian-info">
+          {/* Guardian Information */}
           <h3 className="section-title">Guardian Information</h3>
           <div className="form-grid">
             <div className="input-group">
@@ -218,10 +252,33 @@ const StudentProfileForm = () => {
                 required
               />
             </div>
+            <div className="input-group">
+              <label htmlFor="motherName">Mother's Name</label>
+              <input
+                type="text"
+                id="motherName"
+                name="motherName"
+                value={profile.motherName}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="Enter mother's name"
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="motherPhoneNumber">Mother's Phone Number</label>
+              <input
+                type="tel"
+                id="motherPhoneNumber"
+                name="motherPhoneNumber"
+                value={profile.motherPhoneNumber}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="e.g., +1 (555) 123-4567"
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="form-section address-info">
+          {/* Address Information */}
           <h3 className="section-title">Address Information</h3>
           <div className="form-grid">
             <div className="input-group full-width">
@@ -234,6 +291,7 @@ const StudentProfileForm = () => {
                 onChange={handleChange}
                 className="form-input"
                 placeholder="Enter street address"
+                required
               />
             </div>
             <div className="input-group">
@@ -246,6 +304,7 @@ const StudentProfileForm = () => {
                 onChange={handleChange}
                 className="form-input"
                 placeholder="Enter city"
+                required
               />
             </div>
             <div className="input-group">
@@ -258,6 +317,7 @@ const StudentProfileForm = () => {
                 onChange={handleChange}
                 className="form-input"
                 placeholder="Enter state/province"
+                required
               />
             </div>
             <div className="input-group">
@@ -270,6 +330,7 @@ const StudentProfileForm = () => {
                 onChange={handleChange}
                 className="form-input"
                 placeholder="Enter zip/postal code"
+                required
               />
             </div>
             <div className="input-group">
@@ -282,6 +343,7 @@ const StudentProfileForm = () => {
                 onChange={handleChange}
                 className="form-input"
                 placeholder="Enter country"
+                required
               />
             </div>
           </div>
