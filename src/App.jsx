@@ -6,16 +6,18 @@ import StudentDashboard from "./components/dashboard/dashboard";
 import AdminDashboard from "./components/admin-dashboard/admindashboard";
 import StudentProfileForm from "./components/student-profile/studentprofile";
 import AdminProfileForm from "./components/admin-profile/adminprofile";
+import StudentTest from "./components/student-test/StudentTest";
 
 const App = () => {
   return (
     <div>
       <Header />
-      {/* <Hero /> */}
+      <Hero />
       {/* <StudentDashboard /> */}
       {/* <AdminDashboard /> */}
       {/* <StudentProfileForm /> */}
       {/* <AdminProfileForm /> */}
+      {/* <StudentTest /> */}
       <Footer />
     </div>
   );
