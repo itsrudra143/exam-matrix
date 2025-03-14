@@ -4,58 +4,63 @@ import HeroImage from "../../assets/images/Hero-img.jpg";
 
 const HeroSection = () => {
   return (
-    <div className="hero-section">
-      <div className="hero-content">
-        <div className="hero-title-container">
-          <span className="hero-badge">Professional Certification</span>
-          <h1>Your All-in-One Exam Platform</h1>
-          <p className="hero-subtitle">
-            Take practice exams, get instant scores, and track your progress
-            with our intuitive dashboard
-          </p>
-        </div>
-
-        <div className="feature-highlights">
-          <div className="feature-card">
-            <div className="feature-icon">🎓</div>
-            <h3>Practice Exams</h3>
-            <p>
-              Access hundreds of practice questions with detailed explanations
+    <>
+      {/* Hero Section */}
+      <div className="hero-section">
+        <div className="hero-content">
+          <div className="hero-title-container">
+            <span className="hero-badge">Professional Certification</span>
+            <h1>Your All-in-One Exam Platform</h1>
+            <p className="hero-subtitle">
+              Take practice exams, get instant scores, and track your progress
+              with our intuitive dashboard
             </p>
-            <span className="feature-badge">Most Popular</span>
           </div>
-          <div className="feature-card">
-            <div className="feature-icon">🚀</div>
-            <h3>Instant Results</h3>
-            <p>Get immediate feedback and performance analysis</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon">📊</div>
-            <h3>Progress Tracking</h3>
-            <p>Monitor your improvement with visual analytics</p>
-          </div>
-        </div>
 
-        <div className="hero-cta">
-          <button className="hero-button primary">Get Started Free</button>
-          <button className="hero-button secondary">View Demo</button>
-        </div>
-      </div>
-      <div className="hero-image">
-        <div className="image-container">
-          <img src={HeroImage} alt="Exam Dashboard" />
-          <div className="stats-card">
-            <div className="stat">
-              <span className="stat-number">98%</span>
-              <span className="stat-label">Pass Rate</span>
+          <div className="feature-highlights">
+            <div className="feature-card">
+              <div className="feature-icon">🎓</div>
+              <h3>Practice Exams</h3>
+              <p>
+                Access hundreds of practice questions with detailed explanations
+              </p>
+              <span className="feature-badge">Most Popular</span>
             </div>
-            <div className="stat">
-              <span className="stat-number">10K+</span>
-              <span className="stat-label">Students</span>
+            <div className="feature-card">
+              <div className="feature-icon">🚀</div>
+              <h3>Instant Results</h3>
+              <p>Get immediate feedback and performance analysis</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">📊</div>
+              <h3>Progress Tracking</h3>
+              <p>Monitor your improvement with visual analytics</p>
+            </div>
+          </div>
+
+          <div className="hero-cta">
+            <button className="hero-button primary">Get Started Free</button>
+            <button className="hero-button secondary">View Demo</button>
+          </div>
+        </div>
+        <div className="hero-image">
+          <div className="image-container">
+            <img src={HeroImage} alt="Exam Dashboard" />
+            <div className="stats-card">
+              <div className="stat">
+                <span className="stat-number">98%</span>
+                <span className="stat-label">Pass Rate</span>
+              </div>
+              <div className="stat">
+                <span className="stat-number">10K+</span>
+                <span className="stat-label">Students</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Testimonials Section - Stacked below hero section */}
       <div className="testimonials-section">
         <div className="testimonials-container">
           <h2 className="testimonials-heading">
@@ -150,7 +155,7 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

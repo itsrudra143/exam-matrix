@@ -11,9 +11,14 @@
   justify-content: space-between;
   padding: 60px 80px;
   gap: 60px;
-  background: linear-gradient(to right, #f0f7ff, #e6f2ff);
-  border-radius: 0 0 30px 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  /* background: linear-gradient(to right, #f0f7ff, #e6f2ff); */
+  /* border-radius: 0 0 30px 30px; */
+  /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); */
+}
+.hero-section,
+.testimonials-section {
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .hero-content {
@@ -101,7 +106,6 @@
 .feature-icon {
   font-size: 2.5rem;
   margin-bottom: 15px;
-
 }
 
 .feature-card h3 {
@@ -214,11 +218,11 @@
 /* Full-width testimonials section */
 .testimonials-section {
   width: 100%;
-  background: linear-gradient(to bottom, #f8fbff, #e6f2ff);
+  /* background: linear-gradient(to bottom, #f8fbff, #e6f2ff); */
   padding: 80px 0;
   margin-top: 60px;
-  border-top: 1px solid rgba(0, 123, 255, 0.1);
-  border-bottom: 1px solid rgba(0, 123, 255, 0.1);
+  /* border-top: 1px solid rgba(0, 123, 255, 0.1); */
+  /* border-bottom: 1px solid rgba(0, 123, 255, 0.1); */
 }
 
 .testimonials-container {
