@@ -12,9 +12,9 @@ const App = () => {
   return (
     <div>
       <Header />
-      <Hero />
+      {/* <Hero /> */}
       {/* <StudentDashboard /> */}
-      {/* <AdminDashboard /> */}
+      <AdminDashboard />
       {/* <StudentProfileForm /> */}
       {/* <AdminProfileForm /> */}
       {/* <StudentTest /> */}
