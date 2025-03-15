@@ -55,7 +55,7 @@ function TestCreator() {
       required: false,
     };
 
-    if (type === "mcq") {
+    if (type === "mcq" || type === "checkbox") {
       newQuestion.options = [
         { id: 1, text: "", isCorrect: false },
         { id: 2, text: "", isCorrect: false },
@@ -74,11 +74,12 @@ function TestCreator() {
     setQuestions(questions.filter((q) => q.id !== id));
   };
 
-  // Add option to MCQ question
+  // Add option to MCQ or checkbox question
   const addOption = (questionId) => {
     setQuestions(
       questions.map((q) => {
-        if (q.id !== questionId || q.type !== "mcq") return q;
+        if (q.id !== questionId || (q.type !== "mcq" && q.type !== "checkbox"))
+          return q;
 
         const newOptionId = Math.max(...q.options.map((o) => o.id), 0) + 1;
         return {
@@ -92,7 +93,7 @@ function TestCreator() {
     );
   };
 
-  // Remove option from MCQ question
+  // Remove option from MCQ or checkbox question
   const removeOption = (questionId, optionId) => {
     setQuestions(
       questions.map((q) => {
@@ -100,14 +101,14 @@ function TestCreator() {
 
         if (q.options.length <= 2) return q; // Keep at least 2 options
 
-        // Check if we're removing the correct option
-        const removingCorrect = q.options.find(
-          (o) => o.id === optionId && o.isCorrect
-        );
+        // For MCQ, check if we're removing the correct option
+        const removingCorrect =
+          q.type === "mcq" &&
+          q.options.find((o) => o.id === optionId && o.isCorrect);
 
         const filteredOptions = q.options.filter((o) => o.id !== optionId);
 
-        // If removing the correct option, make the first remaining option correct
+        // If removing the correct option in MCQ, make the first remaining option correct
         if (removingCorrect && filteredOptions.length > 0) {
           filteredOptions[0].isCorrect = true;
         }
@@ -133,17 +134,17 @@ function TestCreator() {
       return;
     }
 
-    // For MCQ questions, validate options
-    const invalidMcqs = questions.filter(
+    // For MCQ and checkbox questions, validate options
+    const invalidQuestions = questions.filter(
       (q) =>
-        q.type === "mcq" &&
+        (q.type === "mcq" || q.type === "checkbox") &&
         (q.options.some((o) => !o.text.trim()) ||
-          !q.options.some((o) => o.isCorrect))
+          (q.type === "mcq" && !q.options.some((o) => o.isCorrect)))
     );
 
-    if (invalidMcqs.length > 0) {
+    if (invalidQuestions.length > 0) {
       alert(
-        `Please fill in all options and mark at least one correct option for each MCQ. ${invalidMcqs.length} questions have incomplete options.`
+        `Please fill in all options and mark at least one correct option for each MCQ. ${invalidQuestions.length} questions have incomplete options.`
       );
       return;
     }
@@ -168,7 +169,10 @@ function TestCreator() {
 
         let updatedQuestion = { ...q, type: newType };
 
-        if (newType === "mcq" && !updatedQuestion.options) {
+        if (
+          (newType === "mcq" || newType === "checkbox") &&
+          !updatedQuestion.options
+        ) {
           updatedQuestion.options = [
             { id: 1, text: "", isCorrect: false },
             { id: 2, text: "", isCorrect: false },
@@ -243,6 +247,30 @@ function TestCreator() {
           </div>
         )}
 
+        {question.type === "checkbox" && (
+          <div className="options-preview">
+            {question.options.map((option, optIndex) => (
+              <div
+                key={optIndex}
+                className={`option-preview ${
+                  option.isCorrect ? "correct-option" : ""
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  id={`preview-option-${question.id}-${option.id}`}
+                  name={`preview-question-${question.id}`}
+                  disabled
+                />
+                <label htmlFor={`preview-option-${question.id}-${option.id}`}>
+                  {option.text || "(No option text)"}
+                </label>
+                {option.isCorrect && <span className="correct-badge">✓</span>}
+              </div>
+            ))}
+          </div>
+        )}
+
         {question.type === "coding" && (
           <div className="coding-preview">
             <div className="programming-language">
@@ -299,7 +327,10 @@ function TestCreator() {
                     }
                     className="form-select"
                   >
-                    <option value="mcq">Multiple Choice</option>
+                    <option value="mcq">Multiple Choice (Single Answer)</option>
+                    <option value="checkbox">
+                      Multiple Choice (Multiple Answers)
+                    </option>
                     <option value="coding">Coding Question</option>
                   </select>
                 </div>
@@ -310,14 +341,14 @@ function TestCreator() {
                     onClick={() => duplicateQuestion(question.id)}
                     title="Duplicate"
                   >
-                    <span className="material-icon">content_copy</span>
+                    <span>🔄</span>
                   </button>
                   <button
                     className="btn-icon"
                     onClick={() => removeQuestion(question.id)}
                     title="Delete"
                   >
-                    <span className="material-icon">delete</span>
+                    <span>🗑️</span>
                   </button>
                 </div>
               </div>
@@ -348,6 +379,56 @@ function TestCreator() {
                               option.id,
                               "isCorrect",
                               true
+                            )
+                          }
+                          className="option-radio"
+                        />
+                        <input
+                          type="text"
+                          value={option.text}
+                          onChange={(e) =>
+                            handleOptionChange(
+                              question.id,
+                              option.id,
+                              "text",
+                              e.target.value
+                            )
+                          }
+                          placeholder={`Option ${optIndex + 1}`}
+                          className="option-input"
+                        />
+                        <button
+                          className="btn-icon btn-remove-option"
+                          onClick={() => removeOption(question.id, option.id)}
+                          disabled={question.options.length <= 2}
+                        >
+                          <span className="material-icon">close</span>
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      className="btn-add-option"
+                      onClick={() => addOption(question.id)}
+                    >
+                      Add option
+                    </button>
+                  </div>
+                )}
+
+                {question.type === "checkbox" && (
+                  <div className="options-container">
+                    {question.options.map((option, optIndex) => (
+                      <div key={option.id} className="option-row">
+                        <input
+                          type="checkbox"
+                          id={`option-${question.id}-${option.id}`}
+                          checked={option.isCorrect}
+                          onChange={() =>
+                            handleOptionChange(
+                              question.id,
+                              option.id,
+                              "isCorrect",
+                              !option.isCorrect
                             )
                           }
                           className="option-radio"
@@ -462,21 +543,26 @@ function TestCreator() {
               className="btn-add-question"
               onClick={() => addQuestion("mcq")}
             >
-              <span className="material-icon">add</span> Add Question
+              {" "}
+              Add Question
             </button>
             <div className="question-type-menu">
               <button
                 className="btn-question-type"
                 onClick={() => addQuestion("mcq")}
               >
-                <span className="material-icon">radio_button_checked</span>
-                Multiple Choice
+                Multiple Choice (Single Answer)
+              </button>
+              <button
+                className="btn-question-type"
+                onClick={() => addQuestion("checkbox")}
+              >
+                Multiple Choice (Multiple Answers)
               </button>
               <button
                 className="btn-question-type"
                 onClick={() => addQuestion("coding")}
               >
-                <span className="material-icon">code</span>
                 Coding Question
               </button>
             </div>
