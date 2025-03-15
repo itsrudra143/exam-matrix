@@ -3,29 +3,29 @@ import "./createTest.css";
 
 function TestCreator() {
   const [testTitle, setTestTitle] = useState("");
-  const [testDuration, setTestDuration] = useState(60); // in minutes
+  const [testDescription, setTestDescription] = useState("");
   const [questions, setQuestions] = useState([
     {
       id: 1,
       text: "",
-      marks: 1,
       type: "mcq",
+      required: false,
       options: [
         { id: 1, text: "", isCorrect: false },
         { id: 2, text: "", isCorrect: false },
-        { id: 3, text: "", isCorrect: false },
-        { id: 4, text: "", isCorrect: false },
       ],
     },
   ]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
+  // Handle question text change
   const handleQuestionChange = (id, field, value) => {
     setQuestions(
       questions.map((q) => (q.id === id ? { ...q, [field]: value } : q))
     );
   };
 
+  // Handle option changes
   const handleOptionChange = (questionId, optionId, field, value) => {
     setQuestions(
       questions.map((q) => {
@@ -34,7 +34,7 @@ function TestCreator() {
         const updatedOptions = q.options.map((opt) =>
           opt.id === optionId
             ? { ...opt, [field]: value }
-            : field === "isCorrect" && value === true
+            : field === "isCorrect" && value === true && q.type === "mcq"
             ? { ...opt, isCorrect: false }
             : opt
         );
@@ -44,46 +44,41 @@ function TestCreator() {
     );
   };
 
-  const addQuestion = () => {
+  // Add new question
+  const addQuestion = (type = "mcq") => {
     const newId = Math.max(...questions.map((q) => q.id), 0) + 1;
-    setQuestions([
-      ...questions,
-      {
-        id: newId,
-        text: "",
-        marks: 1,
-        type: "mcq",
-        options: [
-          { id: 1, text: "", isCorrect: false },
-          { id: 2, text: "", isCorrect: false },
-          { id: 3, text: "", isCorrect: false },
-          { id: 4, text: "", isCorrect: false },
-        ],
-      },
-    ]);
 
-    // Automatically scroll to the new question
-    setTimeout(() => {
-      const newQuestionElement = document.getElementById(`question-${newId}`);
-      if (newQuestionElement) {
-        newQuestionElement.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-    }, 100);
-  };
+    let newQuestion = {
+      id: newId,
+      text: "",
+      type: type,
+      required: false,
+    };
 
-  const removeQuestion = (id) => {
-    if (questions.length > 1) {
-      setQuestions(questions.filter((q) => q.id !== id));
+    if (type === "mcq") {
+      newQuestion.options = [
+        { id: 1, text: "", isCorrect: false },
+        { id: 2, text: "", isCorrect: false },
+      ];
+    } else if (type === "coding") {
+      newQuestion.programmingLanguage = "javascript";
+      newQuestion.starterCode = "// Write your code here";
+      newQuestion.sampleSolution = "// Sample solution here";
     }
+
+    setQuestions([...questions, newQuestion]);
   };
 
+  // Remove a question
+  const removeQuestion = (id) => {
+    setQuestions(questions.filter((q) => q.id !== id));
+  };
+
+  // Add option to MCQ question
   const addOption = (questionId) => {
     setQuestions(
       questions.map((q) => {
-        if (q.id !== questionId) return q;
+        if (q.id !== questionId || q.type !== "mcq") return q;
 
         const newOptionId = Math.max(...q.options.map((o) => o.id), 0) + 1;
         return {
@@ -97,6 +92,7 @@ function TestCreator() {
     );
   };
 
+  // Remove option from MCQ question
   const removeOption = (questionId, optionId) => {
     setQuestions(
       questions.map((q) => {
@@ -104,18 +100,24 @@ function TestCreator() {
 
         if (q.options.length <= 2) return q; // Keep at least 2 options
 
-        return {
-          ...q,
-          options: q.options.filter((o) => o.id !== optionId),
-        };
+        // Check if we're removing the correct option
+        const removingCorrect = q.options.find(
+          (o) => o.id === optionId && o.isCorrect
+        );
+
+        const filteredOptions = q.options.filter((o) => o.id !== optionId);
+
+        // If removing the correct option, make the first remaining option correct
+        if (removingCorrect && filteredOptions.length > 0) {
+          filteredOptions[0].isCorrect = true;
+        }
+
+        return { ...q, options: filteredOptions };
       })
     );
   };
 
-  const calculateTotalMarks = () => {
-    return questions.reduce((sum, q) => sum + parseInt(q.marks || 0), 0);
-  };
-
+  // Save the test
   const handleSaveTest = () => {
     if (!testTitle.trim()) {
       alert("Please enter a test title");
@@ -148,9 +150,8 @@ function TestCreator() {
 
     const testData = {
       title: testTitle,
-      duration: testDuration,
+      description: testDescription,
       questions: questions,
-      totalMarks: calculateTotalMarks(),
       createdAt: new Date().toISOString(),
     };
 
@@ -159,27 +160,32 @@ function TestCreator() {
     alert("Test saved successfully!");
   };
 
+  // Change question type
   const changeQuestionType = (questionId, newType) => {
     setQuestions(
       questions.map((q) => {
         if (q.id !== questionId) return q;
 
-        // If changing to text type, remove all but one option
-        const updatedOptions =
-          newType === "text"
-            ? [{ id: 1, text: "Answer", isCorrect: true }]
-            : q.options.length > 0
-            ? q.options
-            : [
-                { id: 1, text: "", isCorrect: false },
-                { id: 2, text: "", isCorrect: false },
-              ];
+        let updatedQuestion = { ...q, type: newType };
 
-        return { ...q, type: newType, options: updatedOptions };
+        if (newType === "mcq" && !updatedQuestion.options) {
+          updatedQuestion.options = [
+            { id: 1, text: "", isCorrect: false },
+            { id: 2, text: "", isCorrect: false },
+          ];
+        } else if (newType === "coding") {
+          delete updatedQuestion.options;
+          updatedQuestion.programmingLanguage = "javascript";
+          updatedQuestion.starterCode = "// Write your code here";
+          updatedQuestion.sampleSolution = "// Sample solution here";
+        }
+
+        return updatedQuestion;
       })
     );
   };
 
+  // Duplicate a question
   const duplicateQuestion = (id) => {
     const questionToDuplicate = questions.find((q) => q.id === id);
     if (!questionToDuplicate) return;
@@ -201,25 +207,15 @@ function TestCreator() {
     ];
 
     setQuestions(updatedQuestions);
-
-    // Scroll to the new question
-    setTimeout(() => {
-      const newQuestionElement = document.getElementById(`question-${newId}`);
-      if (newQuestionElement) {
-        newQuestionElement.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-    }, 100);
   };
 
+  // Render preview of a question
   const renderQuestionPreview = (question, index) => {
     return (
       <div className="question-preview">
         <h3>
-          Question {index + 1} ({question.marks} mark
-          {question.marks > 1 ? "s" : ""})
+          Question {index + 1}
+          {question.required && <span className="required-mark">*</span>}
         </h3>
         <p className="question-text">{question.text || "(No question text)"}</p>
 
@@ -232,303 +228,299 @@ function TestCreator() {
                   option.isCorrect ? "correct-option" : ""
                 }`}
               >
-                <span className="option-label">
-                  {String.fromCharCode(65 + optIndex)}.
-                </span>
-                <span className="option-text">
+                <input
+                  type="radio"
+                  id={`preview-option-${question.id}-${option.id}`}
+                  name={`preview-question-${question.id}`}
+                  disabled
+                />
+                <label htmlFor={`preview-option-${question.id}-${option.id}`}>
                   {option.text || "(No option text)"}
-                </span>
+                </label>
                 {option.isCorrect && <span className="correct-badge">✓</span>}
               </div>
             ))}
           </div>
         )}
 
-        {question.type === "text" && (
-          <div className="text-answer-preview">
-            <p>Answer: {question.options[0]?.text || "(No answer provided)"}</p>
+        {question.type === "coding" && (
+          <div className="coding-preview">
+            <div className="programming-language">
+              Language: {question.programmingLanguage || "JavaScript"}
+            </div>
+            <div className="code-editor-preview">
+              <pre>{question.starterCode || "// Write your code here"}</pre>
+            </div>
           </div>
         )}
       </div>
     );
   };
 
+  // Toggle required state for a question
+  const toggleRequired = (questionId) => {
+    setQuestions(
+      questions.map((q) =>
+        q.id === questionId ? { ...q, required: !q.required } : q
+      )
+    );
+  };
+
   return (
-    <div className="page-container">
-      {/* Fixed header that will scroll with the page */}
-      <div className="fixed-header">
-        <div className="header-content">
-          <div className="header-left">
-            <h1>
-              {testTitle ? testTitle : "Create New Test"}
-              {testTitle && <span className="title-label">Test Title</span>}
-            </h1>
+    <div className="test-creator-container">
+      {!isPreviewMode ? (
+        <>
+          {/* Test Title Card */}
+          <div className="form-card title-card">
+            <input
+              type="text"
+              value={testTitle}
+              onChange={(e) => setTestTitle(e.target.value)}
+              placeholder="Untitled Test"
+              className="form-title-input"
+            />
+            <textarea
+              value={testDescription}
+              onChange={(e) => setTestDescription(e.target.value)}
+              placeholder="Test description"
+              className="form-description-input"
+            />
           </div>
-          <div className="header-right">
-            <div className="test-summary">
-              <div className="summary-item">
-                <span>Questions:</span>
-                <strong>{questions.length}</strong>
-              </div>
-              <div className="summary-item">
-                <span>Total Marks:</span>
-                <strong>{calculateTotalMarks()}</strong>
-              </div>
-              <div className="summary-item">
-                <span>Duration:</span>
-                <strong>{testDuration} min</strong>
-              </div>
-            </div>
-            <div className="header-actions">
-              <button
-                className={`btn-preview ${isPreviewMode ? "active" : ""}`}
-                onClick={() => setIsPreviewMode(!isPreviewMode)}
-              >
-                {isPreviewMode ? "Edit" : "Preview"}
-              </button>
-              <button className="btn-save" onClick={handleSaveTest}>
-                Save Test
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Main content container, separate from the header */}
-      <div className="main-container">
-        <div className="test-creator-body">
-          {!isPreviewMode ? (
-            <>
-              <div className="test-settings-section">
-                <div className="section-title">Test Settings</div>
-                <div className="settings-grid">
-                  <div className="form-group">
-                    <label>Test Title:</label>
-                    <input
-                      type="text"
-                      value={testTitle}
-                      onChange={(e) => setTestTitle(e.target.value)}
-                      placeholder="Enter test title"
-                      className="form-control"
-                    />
-                  </div>
+          {/* Questions */}
+          {questions.map((question) => (
+            <div key={question.id} className="form-card question-card">
+              <div className="question-header">
+                <div className="question-type-selector">
+                  <select
+                    value={question.type}
+                    onChange={(e) =>
+                      changeQuestionType(question.id, e.target.value)
+                    }
+                    className="form-select"
+                  >
+                    <option value="mcq">Multiple Choice</option>
+                    <option value="coding">Coding Question</option>
+                  </select>
+                </div>
 
-                  <div className="form-group">
-                    <label>Test Duration (minutes):</label>
-                    <input
-                      type="number"
-                      value={testDuration}
-                      onChange={(e) => setTestDuration(e.target.value)}
-                      min="1"
-                      className="form-control duration-input"
-                    />
-                  </div>
+                <div className="question-actions">
+                  <button
+                    className="btn-icon"
+                    onClick={() => duplicateQuestion(question.id)}
+                    title="Duplicate"
+                  >
+                    <span className="material-icon">content_copy</span>
+                  </button>
+                  <button
+                    className="btn-icon"
+                    onClick={() => removeQuestion(question.id)}
+                    title="Delete"
+                  >
+                    <span className="material-icon">delete</span>
+                  </button>
                 </div>
               </div>
 
-              <div className="questions-container">
-                <div className="section-title">Questions</div>
+              <div className="question-content">
+                <input
+                  type="text"
+                  value={question.text}
+                  onChange={(e) =>
+                    handleQuestionChange(question.id, "text", e.target.value)
+                  }
+                  placeholder="Question"
+                  className="question-input"
+                />
 
-                {questions.map((question, index) => (
-                  <div
-                    key={question.id}
-                    id={`question-${question.id}`}
-                    className="question-card"
-                  >
-                    <div className="question-header">
-                      <h3>Question {index + 1}</h3>
-                      <div className="question-actions">
-                        <button
-                          className="btn-icon btn-duplicate"
-                          onClick={() => duplicateQuestion(question.id)}
-                          title="Duplicate Question"
-                        >
-                          <span className="icon">📋</span>
-                        </button>
-                        <button
-                          className="btn-icon btn-remove"
-                          onClick={() => removeQuestion(question.id)}
-                          disabled={questions.length <= 1}
-                          title="Remove Question"
-                        >
-                          <span className="icon">🗑️</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="form-group">
-                      <label>Question:</label>
-                      <textarea
-                        value={question.text}
-                        onChange={(e) =>
-                          handleQuestionChange(
-                            question.id,
-                            "text",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter your question"
-                        className="form-control"
-                      />
-                    </div>
-
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Marks:</label>
+                {question.type === "mcq" && (
+                  <div className="options-container">
+                    {question.options.map((option, optIndex) => (
+                      <div key={option.id} className="option-row">
                         <input
-                          type="number"
-                          value={question.marks}
-                          onChange={(e) =>
-                            handleQuestionChange(
+                          type="radio"
+                          id={`option-${question.id}-${option.id}`}
+                          name={`question-${question.id}`}
+                          checked={option.isCorrect}
+                          onChange={() =>
+                            handleOptionChange(
                               question.id,
-                              "marks",
-                              e.target.value
+                              option.id,
+                              "isCorrect",
+                              true
                             )
                           }
-                          min="1"
-                          className="form-control marks-input"
+                          className="option-radio"
                         />
-                      </div>
-
-                      <div className="form-group">
-                        <label>Question Type:</label>
-                        <select
-                          value={question.type}
-                          onChange={(e) =>
-                            changeQuestionType(question.id, e.target.value)
-                          }
-                          className="form-control"
-                        >
-                          <option value="mcq">Multiple Choice</option>
-                          <option value="text">Text Answer</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {question.type === "mcq" && (
-                      <div className="options-container">
-                        <h4>Options</h4>
-
-                        {question.options.map((option, optIndex) => (
-                          <div key={option.id} className="option-row">
-                            <div className="option-label">
-                              {String.fromCharCode(65 + optIndex)}.
-                            </div>
-                            <div className="option-text">
-                              <input
-                                type="text"
-                                value={option.text}
-                                onChange={(e) =>
-                                  handleOptionChange(
-                                    question.id,
-                                    option.id,
-                                    "text",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder={`Option ${optIndex + 1}`}
-                                className="form-control"
-                              />
-                            </div>
-
-                            <div className="option-correct">
-                              <label>
-                                <input
-                                  type="radio"
-                                  name={`correct-${question.id}`}
-                                  checked={option.isCorrect}
-                                  onChange={() =>
-                                    handleOptionChange(
-                                      question.id,
-                                      option.id,
-                                      "isCorrect",
-                                      true
-                                    )
-                                  }
-                                />
-                                Correct
-                              </label>
-                            </div>
-
-                            <button
-                              className="btn-remove-option"
-                              onClick={() =>
-                                removeOption(question.id, option.id)
-                              }
-                              disabled={question.options.length <= 2}
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ))}
-
-                        <button
-                          className="btn-add-option"
-                          onClick={() => addOption(question.id)}
-                        >
-                          Add Option
-                        </button>
-                      </div>
-                    )}
-
-                    {question.type === "text" && (
-                      <div className="form-group">
-                        <label>Correct Answer:</label>
                         <input
                           type="text"
-                          value={question.options[0]?.text || ""}
+                          value={option.text}
                           onChange={(e) =>
                             handleOptionChange(
                               question.id,
-                              question.options[0]?.id,
+                              option.id,
                               "text",
                               e.target.value
                             )
                           }
-                          placeholder="Enter the correct answer"
-                          className="form-control"
+                          placeholder={`Option ${optIndex + 1}`}
+                          className="option-input"
                         />
+                        <button
+                          className="btn-icon btn-remove-option"
+                          onClick={() => removeOption(question.id, option.id)}
+                          disabled={question.options.length <= 2}
+                        >
+                          <span className="material-icon">close</span>
+                        </button>
                       </div>
-                    )}
+                    ))}
+                    <button
+                      className="btn-add-option"
+                      onClick={() => addOption(question.id)}
+                    >
+                      Add option
+                    </button>
                   </div>
-                ))}
+                )}
 
-                <button className="btn-add-question" onClick={addQuestion}>
-                  Add Question
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="preview-mode">
-              <div className="preview-header">
-                <h2>{testTitle || "Untitled Test"}</h2>
-                <div className="preview-info">
-                  <span className="preview-duration">
-                    Duration: {testDuration} minutes
-                  </span>
-                  <span className="preview-marks">
-                    Total Marks: {calculateTotalMarks()}
-                  </span>
-                </div>
-                <div className="preview-instructions">
-                  <p>
-                    Answer all questions. Each question carries the marks
-                    indicated.
-                  </p>
-                </div>
-              </div>
+                {question.type === "coding" && (
+                  <div className="coding-container">
+                    <div className="form-group">
+                      <label>Programming Language:</label>
+                      <select
+                        value={question.programmingLanguage || "javascript"}
+                        onChange={(e) =>
+                          handleQuestionChange(
+                            question.id,
+                            "programmingLanguage",
+                            e.target.value
+                          )
+                        }
+                        className="form-select"
+                      >
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="cpp">C++</option>
+                      </select>
+                    </div>
 
-              <div className="preview-questions">
-                {questions.map((question, index) => (
-                  <div key={index} className="preview-question-card">
-                    {renderQuestionPreview(question, index)}
+                    <div className="form-group">
+                      <label>Starter Code:</label>
+                      <textarea
+                        value={
+                          question.starterCode || "// Write your code here"
+                        }
+                        onChange={(e) =>
+                          handleQuestionChange(
+                            question.id,
+                            "starterCode",
+                            e.target.value
+                          )
+                        }
+                        className="code-editor"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Sample Solution (For Grading):</label>
+                      <textarea
+                        value={
+                          question.sampleSolution || "// Sample solution here"
+                        }
+                        onChange={(e) =>
+                          handleQuestionChange(
+                            question.id,
+                            "sampleSolution",
+                            e.target.value
+                          )
+                        }
+                        className="code-editor"
+                      />
+                    </div>
                   </div>
-                ))}
+                )}
+
+                <div className="question-footer">
+                  <label className="required-toggle">
+                    <input
+                      type="checkbox"
+                      checked={question.required || false}
+                      onChange={() => toggleRequired(question.id)}
+                    />
+                    Required
+                  </label>
+                </div>
               </div>
             </div>
-          )}
+          ))}
+
+          {/* Add Question Button */}
+          <div className="add-question-container">
+            <button
+              className="btn-add-question"
+              onClick={() => addQuestion("mcq")}
+            >
+              <span className="material-icon">add</span> Add Question
+            </button>
+            <div className="question-type-menu">
+              <button
+                className="btn-question-type"
+                onClick={() => addQuestion("mcq")}
+              >
+                <span className="material-icon">radio_button_checked</span>
+                Multiple Choice
+              </button>
+              <button
+                className="btn-question-type"
+                onClick={() => addQuestion("coding")}
+              >
+                <span className="material-icon">code</span>
+                Coding Question
+              </button>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="form-actions">
+            <button
+              className="btn-preview"
+              onClick={() => setIsPreviewMode(true)}
+            >
+              Preview
+            </button>
+            <button className="btn-save" onClick={handleSaveTest}>
+              Save
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="preview-container">
+          <div className="preview-header">
+            <h1>{testTitle || "Untitled Test"}</h1>
+            <p className="preview-description">{testDescription}</p>
+          </div>
+
+          <div className="preview-questions">
+            {questions.map((question, index) => (
+              <div key={index} className="preview-question-card">
+                {renderQuestionPreview(question, index)}
+              </div>
+            ))}
+          </div>
+
+          <div className="preview-actions">
+            <button
+              className="btn-back-to-edit"
+              onClick={() => setIsPreviewMode(false)}
+            >
+              Back to Edit
+            </button>
+            <button className="btn-submit">Submit</button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
