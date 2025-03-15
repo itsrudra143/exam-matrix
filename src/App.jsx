@@ -8,6 +8,8 @@ import StudentProfileForm from "./components/student-profile/studentprofile";
 import AdminProfileForm from "./components/admin-profile/adminprofile";
 import StudentTest from "./components/student-test/StudentTest";
 import LoginForm from "./components/login-form/Login";
+import SignUp from "./components/signup-form/Signup";
+import TestCreator from "./components/create-test/createTest";
 
 const App = () => {
   return (
@@ -19,7 +21,9 @@ const App = () => {
       {/* <StudentProfileForm /> */}
       {/* <AdminProfileForm /> */}
       {/* <StudentTest /> */}
-      <LoginForm />
+      {/* <LoginForm /> */}
+      {/* <SignUp /> */}
+      <TestCreator />
       <Footer />
     </div>
   );
