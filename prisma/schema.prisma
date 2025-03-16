@@ -8,19 +8,19 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  password     String
-  firstName    String
-  lastName     String
-  role         Role          @default(STUDENT)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  profile      Profile?
-  attempts     TestAttempt[]
-  createdTests Test[]        @relation("CreatedTests")
-  createdClasses Class[]     @relation("CreatedClasses")
-  enrollments  Enrollment[]
+  id             String        @id @default(uuid())
+  email          String        @unique
+  password       String
+  firstName      String
+  lastName       String
+  role           Role          @default(STUDENT)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  createdClasses Class[]       @relation("CreatedClasses")
+  enrollments    Enrollment[]
+  profile        Profile?
+  attempts       TestAttempt[]
+  createdTests   Test[]        @relation("CreatedTests")
 
   @@map("users")
 }
@@ -39,25 +39,25 @@ model Profile {
 }
 
 model Test {
-  id          String        @id @default(uuid())
-  title       String
-  description String?
-  createdById String
-  duration    Int           @default(60)
-  isPublished Boolean       @default(false)
-  isActive    Boolean       @default(false)
-  maxAttempts Int           @default(1)
+  id             String        @id @default(uuid())
+  title          String
+  description    String?
+  createdById    String
+  duration       Int           @default(60)
+  isPublished    Boolean       @default(false)
+  startTime      DateTime?
+  endTime        DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  isActive       Boolean       @default(false)
   expiryDuration Int?
-  expiryUnit  String?       @default("days")
-  startTime   DateTime?
-  endTime     DateTime?
-  status      TestStatus    @default(DRAFT)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  questions   Question[]
-  attempts    TestAttempt[]
-  createdBy   User          @relation("CreatedTests", fields: [createdById], references: [id])
-  classes     TestClass[]
+  maxAttempts    Int           @default(1)
+  expiryUnit     String?       @default("days")
+  status         TestStatus    @default(DRAFT)
+  questions      Question[]
+  attempts       TestAttempt[]
+  classes        TestClass[]
+  createdBy      User          @relation("CreatedTests", fields: [createdById], references: [id])
 
   @@map("tests")
 }
@@ -135,8 +135,8 @@ model Enrollment {
   status    EnrollmentStatus @default(PENDING)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   class     Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, classId])
   @@map("enrollments")
@@ -147,8 +147,8 @@ model TestClass {
   testId    String
   classId   String
   createdAt DateTime @default(now())
-  test      Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
   class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  test      Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
 
   @@unique([testId, classId])
   @@map("test_classes")
@@ -176,4 +176,5 @@ enum TestStatus {
   DRAFT
   ACTIVE
   COMPLETE
+  EXPIRED
 }

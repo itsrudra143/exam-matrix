@@ -86,6 +86,66 @@ export const getAllTests = async (req, res) => {
       }
     });
     
+    // Get all tests that might have expired
+    const testsWithExpiry = await prisma.test.findMany({
+      where: {
+        expiryDuration: { not: null },
+        status: { not: 'COMPLETE' },
+        isPublished: false
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        expiryDuration: true,
+        expiryUnit: true
+      }
+    });
+    
+    // Check each test if it has expired based on its creation date and expiry settings
+    const expiredTestIds = [];
+    for (const test of testsWithExpiry) {
+      const expiryDate = new Date(test.createdAt);
+      
+      if (test.expiryUnit === 'minutes') {
+        expiryDate.setMinutes(expiryDate.getMinutes() + test.expiryDuration);
+      } else if (test.expiryUnit === 'hours') {
+        expiryDate.setHours(expiryDate.getHours() + test.expiryDuration);
+      } else {
+        // Default to days
+        expiryDate.setDate(expiryDate.getDate() + test.expiryDuration);
+      }
+      
+      if (now > expiryDate) {
+        expiredTestIds.push(test.id);
+      }
+    }
+    
+    // Update tests with end time in the past
+    await prisma.test.updateMany({
+      where: {
+        endTime: { lte: now },
+        status: { not: 'COMPLETE' },
+        isPublished: false
+      },
+      data: {
+        status: 'EXPIRED',
+        isActive: false
+      }
+    });
+    
+    // Update tests that have expired based on expiryDuration
+    if (expiredTestIds.length > 0) {
+      await prisma.test.updateMany({
+        where: {
+          id: { in: expiredTestIds }
+        },
+        data: {
+          status: 'EXPIRED',
+          isActive: false
+        }
+      });
+    }
+    
     // Different queries for admin and student
     let tests;
     
@@ -158,6 +218,59 @@ export const getTestById = async (req, res) => {
         isActive: true
       }
     });
+    
+    // Check if the test has expired based on end time
+    await prisma.test.updateMany({
+      where: {
+        id,
+        endTime: { lte: now },
+        status: { not: 'COMPLETE' },
+        isPublished: false
+      },
+      data: {
+        status: 'EXPIRED',
+        isActive: false
+      }
+    });
+    
+    // Get the test to check if it has expired based on expiryDuration
+    const testWithExpiry = await prisma.test.findUnique({
+      where: { id },
+      select: {
+        expiryDuration: true,
+        expiryUnit: true,
+        createdAt: true,
+        status: true,
+        isPublished: true
+      }
+    });
+    
+    if (testWithExpiry && 
+        testWithExpiry.expiryDuration && 
+        testWithExpiry.status !== 'COMPLETE' && 
+        !testWithExpiry.isPublished) {
+      
+      const expiryDate = new Date(testWithExpiry.createdAt);
+      
+      if (testWithExpiry.expiryUnit === 'minutes') {
+        expiryDate.setMinutes(expiryDate.getMinutes() + testWithExpiry.expiryDuration);
+      } else if (testWithExpiry.expiryUnit === 'hours') {
+        expiryDate.setHours(expiryDate.getHours() + testWithExpiry.expiryDuration);
+      } else {
+        // Default to days
+        expiryDate.setDate(expiryDate.getDate() + testWithExpiry.expiryDuration);
+      }
+      
+      if (now > expiryDate) {
+        await prisma.test.update({
+          where: { id },
+          data: {
+            status: 'EXPIRED',
+            isActive: false
+          }
+        });
+      }
+    }
 
     // Check if test exists
     const test = await prisma.test.findUnique({
@@ -191,12 +304,12 @@ export const getTestById = async (req, res) => {
     } else {
       // For students:
       // 1. Test must be active
-      if (!test.isActive) {
+      if (!test.isActive && !test.isPublished) {
         return res.status(403).json({ message: 'This test is not available.' });
       }
       
       // 2. Test must not be expired
-      if (test.endTime && new Date(test.endTime) < now) {
+      if (test.status === 'EXPIRED' && !test.isPublished) {
         return res.status(403).json({ message: 'This test has expired.' });
       }
       
@@ -458,17 +571,78 @@ export const startTest = async (req, res) => {
         isActive: true
       }
     });
+    
+    // Check if the test has expired based on end time
+    await prisma.test.updateMany({
+      where: {
+        id,
+        endTime: { lte: now },
+        status: { not: 'COMPLETE' },
+        isPublished: false
+      },
+      data: {
+        status: 'EXPIRED',
+        isActive: false
+      }
+    });
+    
+    // Get the test to check if it has expired based on expiryDuration
+    const testWithExpiry = await prisma.test.findUnique({
+      where: { id },
+      select: {
+        expiryDuration: true,
+        expiryUnit: true,
+        createdAt: true,
+        status: true,
+        isPublished: true
+      }
+    });
+    
+    if (testWithExpiry && 
+        testWithExpiry.expiryDuration && 
+        testWithExpiry.status !== 'COMPLETE' && 
+        !testWithExpiry.isPublished) {
+      
+      const expiryDate = new Date(testWithExpiry.createdAt);
+      
+      if (testWithExpiry.expiryUnit === 'minutes') {
+        expiryDate.setMinutes(expiryDate.getMinutes() + testWithExpiry.expiryDuration);
+      } else if (testWithExpiry.expiryUnit === 'hours') {
+        expiryDate.setHours(expiryDate.getHours() + testWithExpiry.expiryDuration);
+      } else {
+        // Default to days
+        expiryDate.setDate(expiryDate.getDate() + testWithExpiry.expiryDuration);
+      }
+      
+      if (now > expiryDate) {
+        await prisma.test.update({
+          where: { id },
+          data: {
+            status: 'EXPIRED',
+            isActive: false
+          }
+        });
+      }
+    }
 
     // Check if test exists and is active
     const test = await prisma.test.findUnique({
       where: { 
         id,
-        isActive: true
+        OR: [
+          { isActive: true },
+          { isPublished: true }
+        ]
       }
     });
 
     if (!test) {
       return res.status(404).json({ message: 'Test not found or not available' });
+    }
+    
+    // Check if test is expired
+    if (test.status === 'EXPIRED' && !test.isPublished) {
+      return res.status(400).json({ message: 'This test has expired and is no longer available' });
     }
 
     // Check if test is within the scheduled time
@@ -482,30 +656,8 @@ export const startTest = async (req, res) => {
       });
     }
     
-    if (test.endTime && new Date(test.endTime) < now) {
+    if (test.endTime && new Date(test.endTime) < now && !test.isPublished) {
       return res.status(400).json({ message: 'Test has already ended' });
-    }
-
-    // Check if test has expired based on expiryDuration and expiryUnit
-    if (test.expiryDuration) {
-      const creationDate = new Date(test.createdAt);
-      const expiryDate = new Date(creationDate);
-      
-      if (test.expiryUnit === 'minutes') {
-        expiryDate.setMinutes(expiryDate.getMinutes() + test.expiryDuration);
-      } else if (test.expiryUnit === 'hours') {
-        expiryDate.setHours(expiryDate.getHours() + test.expiryDuration);
-      } else {
-        // Default to days
-        expiryDate.setDate(expiryDate.getDate() + test.expiryDuration);
-      }
-      
-      if (now > expiryDate) {
-        return res.status(400).json({ 
-          message: `This test expired on ${expiryDate.toLocaleDateString()} at ${expiryDate.toLocaleTimeString()}`,
-          expiryDate
-        });
-      }
     }
 
     // For students, check if they have access to this test through a class

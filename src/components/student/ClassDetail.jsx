@@ -116,6 +116,15 @@ const ClassDetail = () => {
                                   sx={{ fontWeight: 'bold' }} 
                                 />
                               </Tooltip>
+                            ) : test.status === 'EXPIRED' ? (
+                              <Tooltip title="Test has expired and is no longer available">
+                                <Chip 
+                                  label="Expired" 
+                                  color="warning" 
+                                  size="small" 
+                                  sx={{ fontWeight: 'bold', bgcolor: '#f59e0b', color: 'white' }} 
+                                />
+                              </Tooltip>
                             ) : test.isActive ? (
                               <Tooltip title="Test is active and available">
                                 <Chip 
@@ -163,13 +172,15 @@ const ClassDetail = () => {
                         variant="contained" 
                         color="primary"
                         sx={{ ml: 2 }}
-                        disabled={!test.isActive && !test.isPublished}
+                        disabled={(!test.isActive && !test.isPublished) || test.status === 'EXPIRED'}
                         onClick={(e) => {
                           e.stopPropagation(); // Prevent triggering the parent ListItemButton click
                           navigate(`/student/tests/${test.id}`);
                         }}
                       >
-                        {test.isPublished ? 'View Results' : test.isActive ? 'Start Test' : 'Not Available'}
+                        {test.isPublished ? 'View Results' : 
+                         test.status === 'EXPIRED' ? 'Expired' : 
+                         test.isActive ? 'Start Test' : 'Not Available'}
                       </Button>
                     </ListItemButton>
                   </Paper>

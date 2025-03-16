@@ -878,8 +878,14 @@ const AdminDashboard = () => {
                                 Starts: {new Date(test.startTime).toLocaleDateString()}
                               </span>
                             )}
-                            <span className={`test-status ${test.isPublished ? 'complete' : test.isActive ? 'active' : 'inactive'}`}>
-                              {test.isPublished ? 'Complete' : test.isActive ? 'Active' : 'Inactive'}
+                            <span className={`test-status ${
+                              test.isPublished ? 'complete' : 
+                              test.status === 'EXPIRED' ? 'expired' : 
+                              test.isActive ? 'active' : 'inactive'
+                            }`}>
+                              {test.isPublished ? 'Complete' : 
+                               test.status === 'EXPIRED' ? 'Expired' : 
+                               test.isActive ? 'Active' : 'Inactive'}
                             </span>
                           </div>
                           <p className="test-description">
