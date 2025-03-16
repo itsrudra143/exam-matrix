@@ -1,19 +1,26 @@
 import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./Signup.css";
 
 const Signup = () => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
-    role: "student", // Default role
+    role: "STUDENT", // Default role
   });
 
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,6 +35,11 @@ const Signup = () => {
         ...errors,
         [name]: "",
       });
+    }
+    
+    // Clear API error when form is changed
+    if (apiError) {
+      setApiError("");
     }
   };
 
@@ -63,11 +75,16 @@ const Signup = () => {
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
+    
+    // Validate terms acceptance
+    if (!termsAccepted) {
+      newErrors.terms = "You must accept the terms and conditions";
+    }
 
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formErrors = validateForm();
 
@@ -76,14 +93,30 @@ const Signup = () => {
       return;
     }
 
-    // Simulate API call
-    setIsSubmitting(true);
-    setTimeout(() => {
-      console.log("Form submitted:", formData);
-      // Reset form or redirect user
+    try {
+      setIsSubmitting(true);
+      setApiError("");
+      
+      // Call register API
+      await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role
+      });
+      
+      // Redirect to dashboard on success
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Registration error:", error);
+      setApiError(
+        error.response?.data?.message || 
+        "Registration failed. Please try again."
+      );
+    } finally {
       setIsSubmitting(false);
-      alert(`Successfully signed up as a ${formData.role}!`);
-    }, 1500);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -97,6 +130,12 @@ const Signup = () => {
           <h2>Create Your Account</h2>
           <p>Please fill in the details to get started</p>
         </div>
+        
+        {apiError && (
+          <div className="error-alert">
+            {apiError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="signup-form">
           <div className="form-row">
@@ -109,6 +148,7 @@ const Signup = () => {
                 value={formData.firstName}
                 onChange={handleChange}
                 className={errors.firstName ? "error" : ""}
+                disabled={isSubmitting}
               />
               {errors.firstName && (
                 <span className="error-message">{errors.firstName}</span>
@@ -124,6 +164,7 @@ const Signup = () => {
                 value={formData.lastName}
                 onChange={handleChange}
                 className={errors.lastName ? "error" : ""}
+                disabled={isSubmitting}
               />
               {errors.lastName && (
                 <span className="error-message">{errors.lastName}</span>
@@ -140,6 +181,7 @@ const Signup = () => {
               value={formData.email}
               onChange={handleChange}
               className={errors.email ? "error" : ""}
+              disabled={isSubmitting}
             />
             {errors.email && (
               <span className="error-message">{errors.email}</span>
@@ -156,6 +198,7 @@ const Signup = () => {
                 value={formData.password}
                 onChange={handleChange}
                 className={errors.password ? "error" : ""}
+                disabled={isSubmitting}
               />
               <button
                 type="button"
@@ -179,6 +222,7 @@ const Signup = () => {
               value={formData.confirmPassword}
               onChange={handleChange}
               className={errors.confirmPassword ? "error" : ""}
+              disabled={isSubmitting}
             />
             {errors.confirmPassword && (
               <span className="error-message">{errors.confirmPassword}</span>
@@ -190,10 +234,10 @@ const Signup = () => {
             <div className="role-options">
               <div
                 className={`role-option ${
-                  formData.role === "student" ? "selected" : ""
+                  formData.role === "STUDENT" ? "selected" : ""
                 }`}
                 onClick={() =>
-                  handleChange({ target: { name: "role", value: "student" } })
+                  handleChange({ target: { name: "role", value: "STUDENT" } })
                 }
               >
                 <div className="role-icon student-icon">👨‍🎓</div>
@@ -205,9 +249,10 @@ const Signup = () => {
                   <input
                     type="radio"
                     name="role"
-                    value="student"
-                    checked={formData.role === "student"}
+                    value="STUDENT"
+                    checked={formData.role === "STUDENT"}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                   />
                   <span className="checkmark"></span>
                 </div>
@@ -215,10 +260,10 @@ const Signup = () => {
 
               <div
                 className={`role-option ${
-                  formData.role === "admin" ? "selected" : ""
+                  formData.role === "ADMIN" ? "selected" : ""
                 }`}
                 onClick={() =>
-                  handleChange({ target: { name: "role", value: "admin" } })
+                  handleChange({ target: { name: "role", value: "ADMIN" } })
                 }
               >
                 <div className="role-icon admin-icon">👨‍💼</div>
@@ -230,9 +275,10 @@ const Signup = () => {
                   <input
                     type="radio"
                     name="role"
-                    value="admin"
-                    checked={formData.role === "admin"}
+                    value="ADMIN"
+                    checked={formData.role === "ADMIN"}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                   />
                   <span className="checkmark"></span>
                 </div>
@@ -241,29 +287,34 @@ const Signup = () => {
           </div>
 
           <div className="terms-privacy">
-            <input type="checkbox" id="terms" required />
+            <input 
+              type="checkbox" 
+              id="terms" 
+              checked={termsAccepted}
+              onChange={() => setTermsAccepted(!termsAccepted)}
+              disabled={isSubmitting}
+            />
             <label htmlFor="terms">
-              I agree to the <a href="#">Terms of Service</a> and{" "}
-              <a href="#">Privacy Policy</a>
+              I agree to the <Link to="/terms">Terms of Service</Link> and{" "}
+              <Link to="/privacy">Privacy Policy</Link>
             </label>
+            {errors.terms && (
+              <span className="error-message">{errors.terms}</span>
+            )}
           </div>
 
-          <button
-            type="submit"
+          <button 
+            type="submit" 
             className="signup-button"
             disabled={isSubmitting}
           >
-            {isSubmitting ? (
-              <span className="loading-spinner"></span>
-            ) : (
-              "Create Account"
-            )}
+            {isSubmitting ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
         <div className="signup-footer">
           <p>
-            Already have an account? <a href="#">Log In</a>
+            Already have an account? <Link to="/login">Sign In</Link>
           </p>
         </div>
       </div>

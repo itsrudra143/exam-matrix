@@ -1,14 +1,28 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useCreateTest } from "../../hooks/useTests";
 import "./createTest.css";
 
 function TestCreator() {
+  const navigate = useNavigate();
+  const createTestMutation = useCreateTest();
+  
   const [testTitle, setTestTitle] = useState("");
   const [testDescription, setTestDescription] = useState("");
+  const [duration, setDuration] = useState(60); // Default 60 minutes
+  const [maxAttempts, setMaxAttempts] = useState(1); // Default 1 attempt
+  const [expiryDuration, setExpiryDuration] = useState(""); // Optional expiry duration
+  const [expiryUnit, setExpiryUnit] = useState("days"); // Default to days
+  const [isUnlimitedAttempts, setIsUnlimitedAttempts] = useState(false); // For unlimited attempts
+  const [isInfiniteExpiry, setIsInfiniteExpiry] = useState(true); // Default to infinite expiry
+  const [startDate, setStartDate] = useState(""); // Start date for the test
+  const [startTime, setStartTime] = useState(""); // Start time for the test
+  const [useStartDateTime, setUseStartDateTime] = useState(false); // Whether to use start date/time
   const [questions, setQuestions] = useState([
     {
       id: 1,
       text: "",
-      type: "mcq",
+      type: "MCQ",
       required: false,
       options: [
         { id: 1, text: "", isCorrect: false },
@@ -17,6 +31,8 @@ function TestCreator() {
     },
   ]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   // Handle question text change
   const handleQuestionChange = (id, field, value) => {
@@ -34,7 +50,7 @@ function TestCreator() {
         const updatedOptions = q.options.map((opt) =>
           opt.id === optionId
             ? { ...opt, [field]: value }
-            : field === "isCorrect" && value === true && q.type === "mcq"
+            : field === "isCorrect" && value === true && q.type === "MCQ"
             ? { ...opt, isCorrect: false }
             : opt
         );
@@ -45,7 +61,7 @@ function TestCreator() {
   };
 
   // Add new question
-  const addQuestion = (type = "mcq") => {
+  const addQuestion = (type = "MCQ") => {
     const newId = Math.max(...questions.map((q) => q.id), 0) + 1;
 
     let newQuestion = {
@@ -55,12 +71,12 @@ function TestCreator() {
       required: false,
     };
 
-    if (type === "mcq" || type === "checkbox") {
+    if (type === "MCQ" || type === "CHECKBOX") {
       newQuestion.options = [
         { id: 1, text: "", isCorrect: false },
         { id: 2, text: "", isCorrect: false },
       ];
-    } else if (type === "coding") {
+    } else if (type === "CODING") {
       newQuestion.programmingLanguage = "javascript";
       newQuestion.starterCode = "// Write your code here";
       newQuestion.sampleSolution = "// Sample solution here";
@@ -78,7 +94,7 @@ function TestCreator() {
   const addOption = (questionId) => {
     setQuestions(
       questions.map((q) => {
-        if (q.id !== questionId || (q.type !== "mcq" && q.type !== "checkbox"))
+        if (q.id !== questionId || (q.type !== "MCQ" && q.type !== "CHECKBOX"))
           return q;
 
         const newOptionId = Math.max(...q.options.map((o) => o.id), 0) + 1;
@@ -103,7 +119,7 @@ function TestCreator() {
 
         // For MCQ, check if we're removing the correct option
         const removingCorrect =
-          q.type === "mcq" &&
+          q.type === "MCQ" &&
           q.options.find((o) => o.id === optionId && o.isCorrect);
 
         const filteredOptions = q.options.filter((o) => o.id !== optionId);
@@ -119,46 +135,88 @@ function TestCreator() {
   };
 
   // Save the test
-  const handleSaveTest = () => {
+  const handleSaveTest = async () => {
     if (!testTitle.trim()) {
-      alert("Please enter a test title");
+      setError("Please enter a test title");
       return;
     }
 
     // Validate each question has text
     const emptyQuestions = questions.filter((q) => !q.text.trim());
     if (emptyQuestions.length > 0) {
-      alert(
-        `Please fill in all question texts. ${emptyQuestions.length} questions are empty.`
-      );
+      setError(`Please fill in all question texts. ${emptyQuestions.length} questions are empty.`);
       return;
     }
 
     // For MCQ and checkbox questions, validate options
     const invalidQuestions = questions.filter(
       (q) =>
-        (q.type === "mcq" || q.type === "checkbox") &&
+        (q.type === "MCQ" || q.type === "CHECKBOX") &&
         (q.options.some((o) => !o.text.trim()) ||
-          (q.type === "mcq" && !q.options.some((o) => o.isCorrect)))
+          (q.type === "MCQ" && !q.options.some((o) => o.isCorrect)))
     );
 
     if (invalidQuestions.length > 0) {
-      alert(
+      setError(
         `Please fill in all options and mark at least one correct option for each MCQ. ${invalidQuestions.length} questions have incomplete options.`
       );
       return;
     }
 
-    const testData = {
-      title: testTitle,
-      description: testDescription,
-      questions: questions,
-      createdAt: new Date().toISOString(),
-    };
-
-    console.log("Test saved:", testData);
-    // Here you would typically send this data to your backend
-    alert("Test saved successfully!");
+    try {
+      setIsSubmitting(true);
+      setError("");
+      
+      // Parse start date and time if provided
+      let startDateTime = null;
+      if (useStartDateTime && startDate) {
+        const dateStr = startDate;
+        const timeStr = startTime || "00:00";
+        startDateTime = new Date(`${dateStr}T${timeStr}`);
+        
+        // Validate the date is in the future
+        if (startDateTime <= new Date()) {
+          setError("Start date and time must be in the future");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+      
+      // Format the test data for the API
+      const testData = {
+        title: testTitle,
+        description: testDescription,
+        duration: parseInt(duration),
+        maxAttempts: isUnlimitedAttempts ? -1 : parseInt(maxAttempts),
+        expiryDuration: isInfiniteExpiry ? null : parseInt(expiryDuration),
+        expiryUnit: expiryUnit,
+        startTime: startDateTime,
+        questions: questions.map((q, index) => ({
+          text: q.text,
+          type: q.type,
+          required: q.required,
+          order: index + 1,
+          options: q.type === "MCQ" || q.type === "CHECKBOX" 
+            ? q.options.map(o => ({
+                text: o.text,
+                isCorrect: o.isCorrect
+              }))
+            : undefined
+        }))
+      };
+      
+      // Call the API to create the test
+      await createTestMutation.mutateAsync(testData);
+      
+      // Navigate to dashboard on success
+      alert("Test saved successfully!");
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error saving test:", error);
+      setError(error.response?.data?.message || "Failed to save test. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Change question type
@@ -170,14 +228,14 @@ function TestCreator() {
         let updatedQuestion = { ...q, type: newType };
 
         if (
-          (newType === "mcq" || newType === "checkbox") &&
+          (newType === "MCQ" || newType === "CHECKBOX") &&
           !updatedQuestion.options
         ) {
           updatedQuestion.options = [
             { id: 1, text: "", isCorrect: false },
             { id: 2, text: "", isCorrect: false },
           ];
-        } else if (newType === "coding") {
+        } else if (newType === "CODING") {
           delete updatedQuestion.options;
           updatedQuestion.programmingLanguage = "javascript";
           updatedQuestion.starterCode = "// Write your code here";
@@ -223,7 +281,7 @@ function TestCreator() {
         </h3>
         <p className="question-text">{question.text || "(No question text)"}</p>
 
-        {question.type === "mcq" && (
+        {question.type === "MCQ" && (
           <div className="options-preview">
             {question.options.map((option, optIndex) => (
               <div
@@ -247,7 +305,7 @@ function TestCreator() {
           </div>
         )}
 
-        {question.type === "checkbox" && (
+        {question.type === "CHECKBOX" && (
           <div className="options-preview">
             {question.options.map((option, optIndex) => (
               <div
@@ -259,7 +317,6 @@ function TestCreator() {
                 <input
                   type="checkbox"
                   id={`preview-option-${question.id}-${option.id}`}
-                  name={`preview-question-${question.id}`}
                   disabled
                 />
                 <label htmlFor={`preview-option-${question.id}-${option.id}`}>
@@ -271,13 +328,19 @@ function TestCreator() {
           </div>
         )}
 
-        {question.type === "coding" && (
+        {question.type === "TEXT" && (
+          <div className="text-preview">
+            <textarea
+              placeholder="Student's answer will appear here"
+              disabled
+            ></textarea>
+          </div>
+        )}
+
+        {question.type === "CODING" && (
           <div className="coding-preview">
-            <div className="programming-language">
-              Language: {question.programmingLanguage || "JavaScript"}
-            </div>
             <div className="code-editor-preview">
-              <pre>{question.starterCode || "// Write your code here"}</pre>
+              <pre>{question.starterCode || "// Code editor will appear here"}</pre>
             </div>
           </div>
         )}
@@ -285,325 +348,384 @@ function TestCreator() {
     );
   };
 
-  // Toggle required state for a question
-  const toggleRequired = (questionId) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId ? { ...q, required: !q.required } : q
-      )
-    );
+  // Toggle preview mode
+  const togglePreviewMode = () => {
+    setIsPreviewMode(!isPreviewMode);
   };
 
   return (
     <div className="test-creator-container">
-      {!isPreviewMode ? (
-        <>
-          {/* Test Title Card */}
-          <div className="form-card title-card">
-            <input
-              type="text"
-              value={testTitle}
-              onChange={(e) => setTestTitle(e.target.value)}
-              placeholder="Untitled Test"
-              className="form-title-input"
-            />
-            <textarea
-              value={testDescription}
-              onChange={(e) => setTestDescription(e.target.value)}
-              placeholder="Test description"
-              className="form-description-input"
-            />
+      <div className="test-creator-header">
+        <h1>{isPreviewMode ? "Test Preview" : "Create Test"}</h1>
+        <div className="test-creator-actions">
+          <button
+            className="preview-button"
+            onClick={togglePreviewMode}
+          >
+            {isPreviewMode ? "Edit Test" : "Preview Test"}
+          </button>
+          <button
+            className="save-button"
+            onClick={handleSaveTest}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Saving..." : "Save Test"}
+          </button>
+        </div>
+      </div>
+
+      {error && <div className="error-message test-error">{error}</div>}
+
+      {isPreviewMode ? (
+        <div className="test-preview">
+          <div className="test-preview-header">
+            <h2>{testTitle || "(Untitled Test)"}</h2>
+            <p className="test-description">
+              {testDescription || "(No description provided)"}
+            </p>
+            <p className="test-duration">Duration: {duration} minutes</p>
+            <p className="test-attempts">
+              Attempts allowed: {isUnlimitedAttempts ? "Unlimited" : maxAttempts}
+            </p>
+            <p className="test-expiry">
+              Expiry: {isInfiniteExpiry ? "No expiry" : `${expiryDuration} ${expiryUnit}`}
+            </p>
+            {useStartDateTime && startDate && (
+              <p className="test-start-date">
+                Starts on: {new Date(`${startDate}T${startTime || "00:00"}`).toLocaleString()}
+              </p>
+            )}
           </div>
-
-          {/* Questions */}
-          {questions.map((question) => (
-            <div key={question.id} className="form-card question-card">
-              <div className="question-header">
-                <div className="question-type-selector">
-                  <select
-                    value={question.type}
-                    onChange={(e) =>
-                      changeQuestionType(question.id, e.target.value)
-                    }
-                    className="form-select"
-                  >
-                    <option value="mcq">Multiple Choice (Single Answer)</option>
-                    <option value="checkbox">
-                      Multiple Choice (Multiple Answers)
-                    </option>
-                    <option value="coding">Coding Question</option>
-                  </select>
-                </div>
-
-                <div className="question-actions">
-                  <button
-                    className="btn-icon"
-                    onClick={() => duplicateQuestion(question.id)}
-                    title="Duplicate"
-                  >
-                    <span>🔄</span>
-                  </button>
-                  <button
-                    className="btn-icon"
-                    onClick={() => removeQuestion(question.id)}
-                    title="Delete"
-                  >
-                    <span>🗑️</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="question-content">
-                <input
-                  type="text"
-                  value={question.text}
-                  onChange={(e) =>
-                    handleQuestionChange(question.id, "text", e.target.value)
-                  }
-                  placeholder="Question"
-                  className="question-input"
-                />
-
-                {question.type === "mcq" && (
-                  <div className="options-container">
-                    {question.options.map((option, optIndex) => (
-                      <div key={option.id} className="option-row">
-                        <input
-                          type="radio"
-                          id={`option-${question.id}-${option.id}`}
-                          name={`question-${question.id}`}
-                          checked={option.isCorrect}
-                          onChange={() =>
-                            handleOptionChange(
-                              question.id,
-                              option.id,
-                              "isCorrect",
-                              true
-                            )
-                          }
-                          className="option-radio"
-                        />
-                        <input
-                          type="text"
-                          value={option.text}
-                          onChange={(e) =>
-                            handleOptionChange(
-                              question.id,
-                              option.id,
-                              "text",
-                              e.target.value
-                            )
-                          }
-                          placeholder={`Option ${optIndex + 1}`}
-                          className="option-input"
-                        />
-                        <button
-                          className="btn-icon btn-remove-option"
-                          onClick={() => removeOption(question.id, option.id)}
-                          disabled={question.options.length <= 2}
-                        >
-                          <span className="material-icon">close</span>
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      className="btn-add-option"
-                      onClick={() => addOption(question.id)}
-                    >
-                      Add option
-                    </button>
-                  </div>
-                )}
-
-                {question.type === "checkbox" && (
-                  <div className="options-container">
-                    {question.options.map((option, optIndex) => (
-                      <div key={option.id} className="option-row">
-                        <input
-                          type="checkbox"
-                          id={`option-${question.id}-${option.id}`}
-                          checked={option.isCorrect}
-                          onChange={() =>
-                            handleOptionChange(
-                              question.id,
-                              option.id,
-                              "isCorrect",
-                              !option.isCorrect
-                            )
-                          }
-                          className="option-radio"
-                        />
-                        <input
-                          type="text"
-                          value={option.text}
-                          onChange={(e) =>
-                            handleOptionChange(
-                              question.id,
-                              option.id,
-                              "text",
-                              e.target.value
-                            )
-                          }
-                          placeholder={`Option ${optIndex + 1}`}
-                          className="option-input"
-                        />
-                        <button
-                          className="btn-icon btn-remove-option"
-                          onClick={() => removeOption(question.id, option.id)}
-                          disabled={question.options.length <= 2}
-                        >
-                          <span className="material-icon">close</span>
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      className="btn-add-option"
-                      onClick={() => addOption(question.id)}
-                    >
-                      Add option
-                    </button>
-                  </div>
-                )}
-
-                {question.type === "coding" && (
-                  <div className="coding-container">
-                    <div className="form-group">
-                      <label>Programming Language:</label>
-                      <select
-                        value={question.programmingLanguage || "javascript"}
-                        onChange={(e) =>
-                          handleQuestionChange(
-                            question.id,
-                            "programmingLanguage",
-                            e.target.value
-                          )
-                        }
-                        className="form-select"
-                      >
-                        <option value="javascript">JavaScript</option>
-                        <option value="python">Python</option>
-                        <option value="java">Java</option>
-                        <option value="cpp">C++</option>
-                      </select>
-                    </div>
-
-                    <div className="form-group">
-                      <label>Starter Code:</label>
-                      <textarea
-                        value={
-                          question.starterCode || "// Write your code here"
-                        }
-                        onChange={(e) =>
-                          handleQuestionChange(
-                            question.id,
-                            "starterCode",
-                            e.target.value
-                          )
-                        }
-                        className="code-editor"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Sample Solution (For Grading):</label>
-                      <textarea
-                        value={
-                          question.sampleSolution || "// Sample solution here"
-                        }
-                        onChange={(e) =>
-                          handleQuestionChange(
-                            question.id,
-                            "sampleSolution",
-                            e.target.value
-                          )
-                        }
-                        className="code-editor"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="question-footer">
-                  <label className="required-toggle">
-                    <input
-                      type="checkbox"
-                      checked={question.required || false}
-                      onChange={() => toggleRequired(question.id)}
-                    />
-                    Required
-                  </label>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Add Question Button */}
-          <div className="add-question-container">
-            <button
-              className="btn-add-question"
-              onClick={() => addQuestion("mcq")}
-            >
-              {" "}
-              Add Question
-            </button>
-            <div className="question-type-menu">
-              <button
-                className="btn-question-type"
-                onClick={() => addQuestion("mcq")}
-              >
-                Multiple Choice (Single Answer)
-              </button>
-              <button
-                className="btn-question-type"
-                onClick={() => addQuestion("checkbox")}
-              >
-                Multiple Choice (Multiple Answers)
-              </button>
-              <button
-                className="btn-question-type"
-                onClick={() => addQuestion("coding")}
-              >
-                Coding Question
-              </button>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <div className="form-actions">
-            <button
-              className="btn-preview"
-              onClick={() => setIsPreviewMode(true)}
-            >
-              Preview
-            </button>
-            <button className="btn-save" onClick={handleSaveTest}>
-              Save
-            </button>
-          </div>
-        </>
-      ) : (
-        <div className="preview-container">
-          <div className="preview-header">
-            <h1>{testTitle || "Untitled Test"}</h1>
-            <p className="preview-description">{testDescription}</p>
-          </div>
-
-          <div className="preview-questions">
+          <div className="questions-preview">
             {questions.map((question, index) => (
-              <div key={index} className="preview-question-card">
+              <div key={question.id} className="question-preview-container">
                 {renderQuestionPreview(question, index)}
               </div>
             ))}
           </div>
+        </div>
+      ) : (
+        <div className="test-editor">
+          <div className="test-details">
+            <div className="form-group">
+              <label htmlFor="test-title">Test Title</label>
+              <input
+                type="text"
+                id="test-title"
+                value={testTitle}
+                onChange={(e) => setTestTitle(e.target.value)}
+                placeholder="Enter test title"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="test-description">Description (Optional)</label>
+              <textarea
+                id="test-description"
+                value={testDescription}
+                onChange={(e) => setTestDescription(e.target.value)}
+                placeholder="Enter test description"
+              ></textarea>
+            </div>
+            <div className="form-group">
+              <label htmlFor="test-duration">Duration (minutes)</label>
+              <input
+                type="number"
+                id="test-duration"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                min="1"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Start Date & Time</label>
+              <div className="start-date-container">
+                <div className="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="use-start-date"
+                    checked={useStartDateTime}
+                    onChange={(e) => setUseStartDateTime(e.target.checked)}
+                  />
+                  <label htmlFor="use-start-date">Schedule test start</label>
+                </div>
+                {useStartDateTime && (
+                  <div className="date-time-inputs">
+                    <div className="date-input">
+                      <label htmlFor="start-date">Date</label>
+                      <input
+                        type="date"
+                        id="start-date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+                    <div className="time-input">
+                      <label htmlFor="start-time">Time</label>
+                      <input
+                        type="time"
+                        id="start-time"
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="form-group">
+              <label>Attempts Allowed</label>
+              <div className="attempts-container">
+                <div className="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="unlimited-attempts"
+                    checked={isUnlimitedAttempts}
+                    onChange={(e) => setIsUnlimitedAttempts(e.target.checked)}
+                  />
+                  <label htmlFor="unlimited-attempts">Unlimited attempts (for practice tests)</label>
+                </div>
+                {!isUnlimitedAttempts && (
+                  <input
+                    type="number"
+                    id="max-attempts"
+                    value={maxAttempts}
+                    onChange={(e) => setMaxAttempts(e.target.value)}
+                    min="1"
+                    disabled={isUnlimitedAttempts}
+                  />
+                )}
+              </div>
+            </div>
+            
+            <div className="form-group">
+              <label>Test Expiry</label>
+              <div className="expiry-container">
+                <div className="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="infinite-expiry"
+                    checked={isInfiniteExpiry}
+                    onChange={(e) => setIsInfiniteExpiry(e.target.checked)}
+                  />
+                  <label htmlFor="infinite-expiry">No expiry</label>
+                </div>
+                {!isInfiniteExpiry && (
+                  <div className="expiry-input">
+                    <input
+                      type="number"
+                      id="expiry-duration"
+                      value={expiryDuration}
+                      onChange={(e) => setExpiryDuration(e.target.value)}
+                      min="1"
+                      disabled={isInfiniteExpiry}
+                    />
+                    <select 
+                      value={expiryUnit}
+                      onChange={(e) => setExpiryUnit(e.target.value)}
+                      disabled={isInfiniteExpiry}
+                      className="expiry-unit-select"
+                    >
+                      <option value="minutes">Minutes</option>
+                      <option value="hours">Hours</option>
+                      <option value="days">Days</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
-          <div className="preview-actions">
-            <button
-              className="btn-back-to-edit"
-              onClick={() => setIsPreviewMode(false)}
-            >
-              Back to Edit
-            </button>
-            <button className="btn-submit">Submit</button>
+          <div className="questions-container">
+            <h2>Questions</h2>
+            <div className="question-types-toolbar">
+              <button onClick={() => addQuestion("MCQ")}>Add MCQ</button>
+              <button onClick={() => addQuestion("CHECKBOX")}>
+                Add Checkbox
+              </button>
+              <button onClick={() => addQuestion("TEXT")}>Add Text</button>
+              <button onClick={() => addQuestion("CODING")}>Add Coding</button>
+            </div>
+
+            {questions.map((question, index) => (
+              <div key={question.id} className="question-editor">
+                <div className="question-header">
+                  <h3>Question {index + 1}</h3>
+                  <div className="question-actions">
+                    <select
+                      value={question.type}
+                      onChange={(e) =>
+                        changeQuestionType(question.id, e.target.value)
+                      }
+                    >
+                      <option value="MCQ">Multiple Choice</option>
+                      <option value="CHECKBOX">Checkbox</option>
+                      <option value="TEXT">Text</option>
+                      <option value="CODING">Coding</option>
+                    </select>
+                    <button
+                      className="duplicate-button"
+                      onClick={() => duplicateQuestion(question.id)}
+                    >
+                      Duplicate
+                    </button>
+                    <button
+                      className="remove-button"
+                      onClick={() => removeQuestion(question.id)}
+                      disabled={questions.length === 1}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+
+                <div className="question-content">
+                  <div className="form-group">
+                    <label htmlFor={`question-${question.id}`}>
+                      Question Text
+                    </label>
+                    <textarea
+                      id={`question-${question.id}`}
+                      value={question.text}
+                      onChange={(e) =>
+                        handleQuestionChange(question.id, "text", e.target.value)
+                      }
+                      placeholder="Enter question text"
+                    ></textarea>
+                  </div>
+
+                  <div className="question-settings">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={question.required}
+                        onChange={(e) =>
+                          handleQuestionChange(
+                            question.id,
+                            "required",
+                            e.target.checked
+                          )
+                        }
+                      />
+                      Required
+                    </label>
+                  </div>
+
+                  {(question.type === "MCQ" || question.type === "CHECKBOX") && (
+                    <div className="options-editor">
+                      <h4>Options</h4>
+                      {question.options.map((option) => (
+                        <div key={option.id} className="option-editor">
+                          <input
+                            type={question.type === "MCQ" ? "radio" : "checkbox"}
+                            name={`question-${question.id}-options`}
+                            checked={option.isCorrect}
+                            onChange={(e) =>
+                              handleOptionChange(
+                                question.id,
+                                option.id,
+                                "isCorrect",
+                                e.target.checked
+                              )
+                            }
+                          />
+                          <input
+                            type="text"
+                            value={option.text}
+                            onChange={(e) =>
+                              handleOptionChange(
+                                question.id,
+                                option.id,
+                                "text",
+                                e.target.value
+                              )
+                            }
+                            placeholder="Option text"
+                          />
+                          <button
+                            className="remove-option-button"
+                            onClick={() => removeOption(question.id, option.id)}
+                            disabled={question.options.length <= 2}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        className="add-option-button"
+                        onClick={() => addOption(question.id)}
+                      >
+                        Add Option
+                      </button>
+                    </div>
+                  )}
+
+                  {question.type === "CODING" && (
+                    <div className="coding-editor">
+                      <div className="form-group">
+                        <label htmlFor={`language-${question.id}`}>
+                          Programming Language
+                        </label>
+                        <select
+                          id={`language-${question.id}`}
+                          value={question.programmingLanguage}
+                          onChange={(e) =>
+                            handleQuestionChange(
+                              question.id,
+                              "programmingLanguage",
+                              e.target.value
+                            )
+                          }
+                        >
+                          <option value="javascript">JavaScript</option>
+                          <option value="python">Python</option>
+                          <option value="java">Java</option>
+                          <option value="cpp">C++</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor={`starter-code-${question.id}`}>
+                          Starter Code
+                        </label>
+                        <textarea
+                          id={`starter-code-${question.id}`}
+                          value={question.starterCode}
+                          onChange={(e) =>
+                            handleQuestionChange(
+                              question.id,
+                              "starterCode",
+                              e.target.value
+                            )
+                          }
+                          className="code-editor"
+                          placeholder="Provide starter code for students"
+                        ></textarea>
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor={`solution-${question.id}`}>
+                          Sample Solution (for reference)
+                        </label>
+                        <textarea
+                          id={`solution-${question.id}`}
+                          value={question.sampleSolution}
+                          onChange={(e) =>
+                            handleQuestionChange(
+                              question.id,
+                              "sampleSolution",
+                              e.target.value
+                            )
+                          }
+                          className="code-editor"
+                          placeholder="Provide a sample solution"
+                        ></textarea>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

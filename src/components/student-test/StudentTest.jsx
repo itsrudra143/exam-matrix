@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
-import "./StudentTest.css"; // You'll need to create this CSS file separately
+import { useParams, useNavigate } from "react-router-dom";
+import { useTest, useStartTest, useSubmitTest } from "../../hooks/useTests";
+import "./StudentTest.css";
 
-const ExamPlatform = () => {
+const StudentTest = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { data: test, isLoading: testLoading, error: testError } = useTest(id);
+  const startTestMutation = useStartTest();
+  const submitTestMutation = useSubmitTest();
+  
   // State for timer
   const [time, setTime] = useState({
     hours: 0,
@@ -19,343 +27,234 @@ const ExamPlatform = () => {
     SectionB: true,
   });
 
-  // Questions state
-  const [questions, setQuestions] = useState({
-    SectionA: [
-      {
-        id: 1,
-        status: "current",
-        section: "SectionA",
-        text: "Which HTML tag is used to create a hyperlink?",
-        options: [
-          { id: "A", text: "<a>", selected: false },
-          { id: "B", text: "<link>", selected: false },
-          { id: "C", text: "<href>", selected: false },
-          { id: "D", text: "<url>", selected: false },
-        ],
-      },
-      {
-        id: 2,
-        status: "not-attempted",
-        section: "SectionA",
-        text: "Which CSS property is used to change the text color of an element?",
-        options: [
-          { id: "A", text: "text-color", selected: false },
-          { id: "B", text: "font-color", selected: false },
-          { id: "C", text: "color", selected: false },
-          { id: "D", text: "text-style", selected: false },
-        ],
-      },
-      {
-        id: 3,
-        status: "not-attempted",
-        section: "SectionA",
-        text: "Which HTML attribute specifies an alternate text for an image, if the image cannot be displayed?",
-        options: [
-          { id: "A", text: "alt", selected: false },
-          { id: "B", text: "src", selected: false },
-          { id: "C", text: "title", selected: false },
-          { id: "D", text: "desc", selected: false },
-        ],
-      },
-      {
-        id: 4,
-        status: "not-attempted",
-        section: "SectionA",
-        text: "Which CSS property is used to change the left margin of an element?",
-        options: [
-          { id: "A", text: "margin", selected: false },
-          { id: "B", text: "margin-left", selected: false },
-          { id: "C", text: "left-margin", selected: false },
-          { id: "D", text: "padding-left", selected: false },
-        ],
-      },
-      {
-        id: 5,
-        status: "not-attempted",
-        section: "SectionA",
-        text: "Which HTML tag defines an internal style sheet?",
-        options: [
-          { id: "A", text: "<css>", selected: false },
-          { id: "B", text: "<script>", selected: false },
-          { id: "C", text: "<style>", selected: false },
-          { id: "D", text: "<link>", selected: false },
-        ],
-      },
-      {
-        id: 6,
-        status: "not-attempted",
-        section: "SectionA",
-        text: "Which CSS property is used to change the background color of an element?",
-        options: [
-          { id: "A", text: "background-color", selected: false },
-          { id: "B", text: "bg-color", selected: false },
-          { id: "C", text: "color-background", selected: false },
-          { id: "D", text: "bg-style", selected: false },
-        ],
-      },
-      {
-        id: 7,
-        status: "not-attempted",
-        section: "SectionA",
-        text: "Which HTML attribute is used to define inline styles?",
-        options: [
-          { id: "A", text: "style", selected: false },
-          { id: "B", text: "font", selected: false },
-          { id: "C", text: "class", selected: false },
-          { id: "D", text: "css", selected: false },
-        ],
-      },
-      {
-        id: 8,
-        status: "not-attempted",
-        section: "SectionA",
-        text: "Which CSS selector selects elements with a specific class?",
-        options: [
-          { id: "A", text: "#class", selected: false },
-          { id: "B", text: ".class", selected: false },
-          { id: "C", text: "class", selected: false },
-          { id: "D", text: "*class", selected: false },
-        ],
-      },
-      {
-        id: 9,
-        status: "not-attempted",
-        section: "SectionA",
-        text: "Which HTML tag is used to create a dropdown list?",
-        options: [
-          { id: "A", text: "<list>", selected: false },
-          { id: "B", text: "<dropdown>", selected: false },
-          { id: "C", text: "<select>", selected: false },
-          { id: "D", text: "<option>", selected: false },
-        ],
-      },
-      {
-        id: 10,
-        status: "not-attempted",
-        section: "SectionA",
-        text: "Which CSS property is used to change the font size of text?",
-        options: [
-          { id: "A", text: "text-size", selected: false },
-          { id: "B", text: "font-size", selected: false },
-          { id: "C", text: "size", selected: false },
-          { id: "D", text: "font-style", selected: false },
-        ],
-      },
-    ],
-    SectionB: [
-      {
-        id: 1,
-        status: "not-attempted",
-        section: "SectionB",
-        text: "Which HTML5 element is used to define detailed information about a document, or parts of a document?",
-        options: [
-          { id: "A", text: "<details>", selected: false },
-          { id: "B", text: "<info>", selected: false },
-          { id: "C", text: "<metadata>", selected: false },
-          { id: "D", text: "<data>", selected: false },
-        ],
-      },
-      {
-        id: 2,
-        status: "not-attempted",
-        section: "SectionB",
-        text: "Which CSS property is used to create space between the content and its border?",
-        options: [
-          { id: "A", text: "margin", selected: false },
-          { id: "B", text: "padding", selected: false },
-          { id: "C", text: "space", selected: false },
-          { id: "D", text: "border-spacing", selected: false },
-        ],
-      },
-      {
-        id: 3,
-        status: "not-attempted",
-        section: "SectionB",
-        text: "Which HTML tag defines a section in a document?",
-        options: [
-          { id: "A", text: "<section>", selected: false },
-          { id: "B", text: "<div>", selected: false },
-          { id: "C", text: "<segment>", selected: false },
-          { id: "D", text: "<part>", selected: false },
-        ],
-      },
-      {
-        id: 4,
-        status: "not-attempted",
-        section: "SectionB",
-        text: "Which CSS property is used to specify the layout of flexbox items?",
-        options: [
-          { id: "A", text: "flex-direction", selected: false },
-          { id: "B", text: "display: flex", selected: false },
-          { id: "C", text: "flex-layout", selected: false },
-          { id: "D", text: "flex-container", selected: false },
-        ],
-      },
-      {
-        id: 5,
-        status: "not-attempted",
-        section: "SectionB",
-        text: "Which HTML attribute specifies the relationship between the current document and the linked resource?",
-        options: [
-          { id: "A", text: "href", selected: false },
-          { id: "B", text: "src", selected: false },
-          { id: "C", text: "rel", selected: false },
-          { id: "D", text: "link", selected: false },
-        ],
-      },
-      {
-        id: 6,
-        status: "not-attempted",
-        section: "SectionB",
-        text: "Which CSS property is used to change the border style of an element?",
-        options: [
-          { id: "A", text: "border-style", selected: false },
-          { id: "B", text: "border", selected: false },
-          { id: "C", text: "border-type", selected: false },
-          { id: "D", text: "border-line", selected: false },
-        ],
-      },
-      {
-        id: 7,
-        status: "not-attempted",
-        section: "SectionB",
-        text: "Which HTML5 element is used to define a footer for a document or section?",
-        options: [
-          { id: "A", text: "<footer>", selected: false },
-          { id: "B", text: "<end>", selected: false },
-          { id: "C", text: "<bottom>", selected: false },
-          { id: "D", text: "<conclusion>", selected: false },
-        ],
-      },
-      {
-        id: 8,
-        status: "not-attempted",
-        section: "SectionB",
-        text: "Which CSS property is used to change the opacity of an element?",
-        options: [
-          { id: "A", text: "opacity", selected: false },
-          { id: "B", text: "transparency", selected: false },
-          { id: "C", text: "fade", selected: false },
-          { id: "D", text: "visibility", selected: false },
-        ],
-      },
-      {
-        id: 9,
-        status: "not-attempted",
-        section: "SectionB",
-        text: "Which HTML5 element is used to define a navigation link?",
-        options: [
-          { id: "A", text: "<nav>", selected: false },
-          { id: "B", text: "<navigation>", selected: false },
-          { id: "C", text: "<link>", selected: false },
-          { id: "D", text: "<menu>", selected: false },
-        ],
-      },
-      {
-        id: 10,
-        status: "not-attempted",
-        section: "SectionB",
-        text: "Which CSS property is used to change the text alignment of an element?",
-        options: [
-          { id: "A", text: "text-align", selected: false },
-          { id: "B", text: "align", selected: false },
-          { id: "C", text: "justify", selected: false },
-          { id: "D", text: "text-justify", selected: false },
-        ],
-      },
-    ],
-  });
+  // Test attempt state
+  const [testAttempt, setTestAttempt] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  // Calculate progress
-  const calculateProgress = () => {
-    const totalQuestions =
-      questions.SectionA.length + questions.SectionB.length;
-    const answeredQuestions = [
-      ...questions.SectionA,
-      ...questions.SectionB,
-    ].filter((q) => q.status === "answered").length;
-
-    return Math.round((answeredQuestions / totalQuestions) * 100);
-  };
-
-  // Timer effect
+  // Initialize test attempt
   useEffect(() => {
+    if (test && !testAttempt) {
+      startTest();
+    }
+  }, [test]);
+
+  // Set up timer when test is loaded
+  useEffect(() => {
+    if (test && test.duration) {
+      setTime({
+        hours: Math.floor(test.duration / 60),
+        minutes: test.duration % 60,
+        seconds: 0,
+      });
+    }
+  }, [test]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (!testAttempt || time.hours === 0 && time.minutes === 0 && time.seconds === 0) {
+      return;
+    }
+
     const timer = setInterval(() => {
       setTime((prevTime) => {
-        const newSeconds = prevTime.seconds - 1;
-        const newMinutes =
-          newSeconds < 0 ? prevTime.minutes - 1 : prevTime.minutes;
-        const newHours = newMinutes < 0 ? prevTime.hours - 1 : prevTime.hours;
-
-        return {
-          hours: newHours < 0 ? 0 : newHours,
-          minutes: newMinutes < 0 ? 59 : newMinutes,
-          seconds: newSeconds < 0 ? 59 : newSeconds,
-        };
+        if (prevTime.seconds > 0) {
+          return { ...prevTime, seconds: prevTime.seconds - 1 };
+        } else if (prevTime.minutes > 0) {
+          return { ...prevTime, minutes: prevTime.minutes - 1, seconds: 59 };
+        } else if (prevTime.hours > 0) {
+          return { ...prevTime, hours: prevTime.hours - 1, minutes: 59, seconds: 59 };
+        } else {
+          // Time's up - auto submit
+          clearInterval(timer);
+          handleSubmitTest();
+          return { hours: 0, minutes: 0, seconds: 0 };
+        }
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [testAttempt]);
 
-  // Get current question
-  const getCurrentQuestion = () => {
-    return questions[currentSection][currentQuestionIndex];
-  };
-
-  // Handle option selection
-  const handleOptionSelect = (optionId) => {
-    const updatedQuestions = { ...questions };
-    const currentQuestion = getCurrentQuestion();
-
-    updatedQuestions[currentSection] = updatedQuestions[currentSection].map(
-      (q) => {
-        if (q.id === currentQuestion.id) {
-          return {
-            ...q,
-            options: q.options.map((opt) => ({
-              ...opt,
-              selected: opt.id === optionId,
-            })),
-            status: "answered",
-          };
-        }
-        return q;
+  // Start the test
+  const startTest = async () => {
+    try {
+      setError("");
+      const response = await startTestMutation.mutateAsync(id);
+      
+      // Check if the test is already completed and results are published
+      if (response.status === 'COMPLETED') {
+        setSuccess("This test has been completed and results are published. Redirecting to results page...");
+        setTimeout(() => {
+          navigate(`/test-results/${id}`);
+        }, 2000);
+        return;
       }
-    );
-
-    setQuestions(updatedQuestions);
-  };
-
-  // Clear answer
-  const handleClearAnswer = () => {
-    const updatedQuestions = { ...questions };
-    const currentQuestion = getCurrentQuestion();
-
-    updatedQuestions[currentSection] = updatedQuestions[currentSection].map(
-      (q) => {
-        if (q.id === currentQuestion.id) {
-          return {
-            ...q,
-            options: q.options.map((opt) => ({
-              ...opt,
-              selected: false,
-            })),
-            status:
-              currentQuestion.status === "answered"
-                ? "not-attempted"
-                : currentQuestion.status,
-          };
-        }
-        return q;
+      
+      // Check if maximum attempts reached
+      if (response.status === 'MAX_ATTEMPTS_REACHED') {
+        setError(response.message || "You have reached the maximum number of attempts for this test.");
+        return;
       }
-    );
-
-    setQuestions(updatedQuestions);
+      
+      setTestAttempt(response.attempt);
+      
+      // Initialize answers object
+      if (test && test.questions) {
+        const initialAnswers = {};
+        test.questions.forEach(question => {
+          initialAnswers[question.id] = {
+            questionId: question.id,
+            status: "not-attempted"
+          };
+          
+          if (question.type === "MCQ") {
+            initialAnswers[question.id].optionId = null;
+          } else if (question.type === "CHECKBOX") {
+            initialAnswers[question.id].selectedOptions = [];
+          } else if (question.type === "TEXT") {
+            initialAnswers[question.id].textAnswer = "";
+          } else if (question.type === "CODING") {
+            initialAnswers[question.id].codeAnswer = question.starterCode || "";
+          }
+        });
+        setAnswers(initialAnswers);
+      }
+    } catch (error) {
+      console.error("Error starting test:", error);
+      setError(error.response?.data?.message || "Failed to start test. Please try again.");
+    }
   };
 
-  // Toggle section collapse
+  // Handle option selection for MCQ
+  const handleOptionSelect = (questionId, optionId) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        ...prev[questionId],
+        questionId,
+        optionId,
+        status: "answered"
+      }
+    }));
+  };
+
+  // Handle checkbox selection
+  const handleCheckboxSelect = (questionId, optionId, isChecked) => {
+    setAnswers(prev => {
+      const currentAnswer = prev[questionId] || { questionId, selectedOptions: [], status: "not-attempted" };
+      let selectedOptions = [...(currentAnswer.selectedOptions || [])];
+      
+      if (isChecked) {
+        selectedOptions.push(optionId);
+      } else {
+        selectedOptions = selectedOptions.filter(id => id !== optionId);
+      }
+      
+          return {
+        ...prev,
+        [questionId]: {
+          ...currentAnswer,
+          questionId,
+          selectedOptions,
+          status: selectedOptions.length > 0 ? "answered" : "not-attempted"
+        }
+      };
+    });
+  };
+
+  // Handle text answer
+  const handleTextAnswer = (questionId, text) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        ...prev[questionId],
+        questionId,
+        textAnswer: text,
+        status: text.trim() ? "answered" : "not-attempted"
+      }
+    }));
+  };
+
+  // Handle code answer
+  const handleCodeAnswer = (questionId, code) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        ...prev[questionId],
+        questionId,
+        codeAnswer: code,
+        status: code.trim() ? "answered" : "not-attempted"
+      }
+    }));
+  };
+
+  // Mark question for review
+  const markForReview = (questionId) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        ...prev[questionId],
+        status: "marked-for-review"
+      }
+    }));
+  };
+
+  // Submit the test
+  const handleSubmitTest = async () => {
+    try {
+      setIsSubmitting(true);
+      setError("");
+      
+      // Format answers for API
+      let formattedAnswers = [];
+      
+      // Process each answer
+      Object.values(answers).forEach(answer => {
+        const { questionId, optionId, selectedOptions, textAnswer, codeAnswer } = answer;
+        
+        // For checkbox questions with multiple selected options
+        if (selectedOptions && selectedOptions.length > 0) {
+          // Create a separate answer for each selected option
+          selectedOptions.forEach(optId => {
+            formattedAnswers.push({
+              questionId,
+              optionId: optId,
+              textAnswer: null,
+              codeAnswer: null
+            });
+          });
+        } else {
+          // For MCQ, TEXT, and CODING questions
+          formattedAnswers.push({
+            questionId,
+            optionId: optionId || null,
+            textAnswer: textAnswer || null,
+            codeAnswer: codeAnswer || null
+          });
+        }
+      });
+      
+      const response = await submitTestMutation.mutateAsync({
+        id,
+        answers: formattedAnswers
+      });
+      
+      setSuccess("Test submitted successfully!");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+    } catch (error) {
+      console.error("Error submitting test:", error);
+      setError(error.response?.data?.message || "Failed to submit test. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Toggle section expansion
   const toggleSection = (section) => {
     setExpandedSections({
       ...expandedSections,
@@ -363,381 +262,340 @@ const ExamPlatform = () => {
     });
   };
 
-  // Navigation handlers
-  const handleNext = () => {
-    if (currentQuestionIndex < questions[currentSection].length - 1) {
-      const updatedQuestions = { ...questions };
-      const currentQuestion = getCurrentQuestion();
-
-      if (currentQuestion.status === "current") {
-        updatedQuestions[currentSection][currentQuestionIndex].status =
-          "not-attempted";
-      }
-
-      updatedQuestions[currentSection][currentQuestionIndex + 1].status =
-        "current";
-      setQuestions(updatedQuestions);
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else if (currentSection === "SectionA") {
-      setCurrentSection("SectionB");
-      setCurrentQuestionIndex(0);
-
-      const updatedQuestions = { ...questions };
-      const currentQuestion = getCurrentQuestion();
-
-      if (currentQuestion.status === "current") {
-        updatedQuestions[currentSection][currentQuestionIndex].status =
-          "not-attempted";
-      }
-
-      updatedQuestions["SectionB"][0].status = "current";
-      setQuestions(updatedQuestions);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      const updatedQuestions = { ...questions };
-      const currentQuestion = getCurrentQuestion();
-
-      if (currentQuestion.status === "current") {
-        updatedQuestions[currentSection][currentQuestionIndex].status =
-          "not-attempted";
-      }
-
-      updatedQuestions[currentSection][currentQuestionIndex - 1].status =
-        "current";
-      setQuestions(updatedQuestions);
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    } else if (currentSection === "SectionB") {
-      setCurrentSection("SectionA");
-      const lastIndex = questions["SectionA"].length - 1;
-      setCurrentQuestionIndex(lastIndex);
-
-      const updatedQuestions = { ...questions };
-      const currentQuestion = getCurrentQuestion();
-
-      if (currentQuestion.status === "current") {
-        updatedQuestions[currentSection][currentQuestionIndex].status =
-          "not-attempted";
-      }
-
-      updatedQuestions["SectionA"][lastIndex].status = "current";
-      setQuestions(updatedQuestions);
-    }
-  };
-
-  // Handle mark for review toggle
-  const handleMarkForReview = () => {
-    const updatedQuestions = { ...questions };
-    const currentQuestion = getCurrentQuestion();
-
-    updatedQuestions[currentSection] = updatedQuestions[currentSection].map(
-      (q) => {
-        if (q.id === currentQuestion.id) {
-          // If already in review, revert to previous status or not-attempted
-          if (q.status === "review") {
-            return {
-              ...q,
-              status: q.options.some((opt) => opt.selected)
-                ? "answered"
-                : "not-attempted",
-            };
-          } else {
-            // Store current status in a data attribute and change to review
-            return { ...q, status: "review" };
-          }
-        }
-        return q;
-      }
-    );
-
-    setQuestions(updatedQuestions);
-  };
-
-  const handleQuestionNavigation = (section, id) => {
-    const currentQuestion = getCurrentQuestion();
-    const currentIndex = questions[currentSection].findIndex(
-      (q) => q.id === currentQuestion.id
-    );
-
-    const updatedQuestions = { ...questions };
-
-    if (currentQuestion.status === "current") {
-      updatedQuestions[currentSection][currentIndex].status = "not-attempted";
-    }
-
-    const newIndex = questions[section].findIndex((q) => q.id === id);
-    updatedQuestions[section][newIndex].status = "current";
-
-    setQuestions(updatedQuestions);
+  // Navigate to a specific question
+  const navigateToQuestion = (section, index) => {
     setCurrentSection(section);
-    setCurrentQuestionIndex(newIndex);
-  };
-
-  // Get the current question to display
-  const currentQuestion = getCurrentQuestion();
-
-  // Get status color class
-  const getStatusClass = (status) => {
-    switch (status) {
-      case "answered":
-        return "answered";
-      case "current":
-        return "current";
-      case "review":
-        return "review";
-      default:
-        return "not-attempted";
+    setCurrentQuestionIndex(index);
+    
+    // Ensure the section is expanded
+    if (!expandedSections[section]) {
+      toggleSection(section);
     }
   };
 
-  // Get time warning class
-  const getTimeWarningClass = () => {
-    const totalMinutes = time.hours * 60 + time.minutes;
-    if (totalMinutes <= 5) return "danger";
-    if (totalMinutes <= 10) return "warning";
-    return "";
+  // Get status class for question button
+  const getStatusClass = (questionId) => {
+    return answers[questionId]?.status || "not-attempted";
   };
 
-  // Check if current question has any selected option
-  const hasSelectedOption = () => {
-    return currentQuestion.options.some((option) => option.selected);
+  if (testLoading) {
+    return <div className="loading-container">Loading test...</div>;
+  }
+
+  if (testError) {
+    return <div className="error-container">Error loading test: {testError.message}</div>;
+  }
+
+  if (!test) {
+    return <div className="error-container">Test not found</div>;
+  }
+
+  // Group questions by section (for this example, we'll create sections based on question type)
+  const sections = {
+    SectionA: test.questions.filter(q => q.type === "MCQ" || q.type === "CHECKBOX"),
+    SectionB: test.questions.filter(q => q.type === "TEXT" || q.type === "CODING")
   };
 
-  // Check if current question is marked for review
-  const isMarkedForReview = () => {
-    return currentQuestion.status === "review";
-  };
+  // Get current question
+  const currentQuestions = sections[currentSection] || [];
+  const currentQuestion = currentQuestions[currentQuestionIndex];
 
   return (
     <div className="exam-container">
       {/* Test Header */}
       <div className="test-header">
-        <div className="test-info">
-          <div className="test-title">HTML & CSS Programming Test</div>
-          <div className="test-progress">
-            <div className="progress-text">
-              Progress: {calculateProgress()}%
-            </div>
-            <div className="progress-bar">
-              <div
-                className="progress-fill"
-                style={{ width: `${calculateProgress()}%` }}
-              ></div>
+        <div className="test-title">
+          <h1>{test.title}</h1>
+        </div>
+        {testAttempt && (
+          <div className="timer">
+            <span className="timer-label">Time Remaining</span>
+            <div className="timer-display">
+              <div className="timer-unit">
+                <div className="timer-value">{String(time.hours).padStart(2, "0")}</div>
+                <div className="timer-unit-label">Hours</div>
+              </div>
+              <div className="timer-unit">
+                <div className="timer-value">{String(time.minutes).padStart(2, "0")}</div>
+                <div className="timer-unit-label">Minutes</div>
+              </div>
+              <div className="timer-unit">
+                <div className="timer-value">{String(time.seconds).padStart(2, "0")}</div>
+                <div className="timer-unit-label">Seconds</div>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="timer">
-          <div className="timer-label">Time Left</div>
-          <div className={`timer-display ${getTimeWarningClass()}`}>
-            <div className="timer-unit">
-              <div className="timer-value">
-                {time.hours.toString().padStart(2, "0")}
-              </div>
-              <div className="timer-unit-label">hours</div>
-            </div>
-            <div className="timer-unit">
-              <div className="timer-value">
-                {time.minutes.toString().padStart(2, "0")}
-              </div>
-              <div className="timer-unit-label">minutes</div>
-            </div>
-            <div className="timer-unit">
-              <div className="timer-value">
-                {time.seconds.toString().padStart(2, "0")}
-              </div>
-              <div className="timer-unit-label">seconds</div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Main Content */}
-      <div className="main-content">
-        {/* Question Section */}
-        <div className="question-area">
-          <div className="question-title">
-            {currentSection} - Question {currentQuestion.id}
-          </div>
-          <div className="question-text">{currentQuestion.text}</div>
+      {/* Error and Success Messages */}
+      {(error || success) && (
+        <div className="messages-container">
+          {error && <div className="error-message">{error}</div>}
+          {success && <div className="success-message">{success}</div>}
+        </div>
+      )}
 
-          <div className="options">
-            {currentQuestion.options &&
-              currentQuestion.options.map((option) => (
-                <div
-                  key={option.id}
-                  className={`option ${option.selected ? "selected" : ""}`}
-                  onClick={() => handleOptionSelect(option.id)}
-                >
-                  <input
-                    type="radio"
-                    id={`option-${option.id}`}
-                    name="answer"
-                    checked={option.selected}
-                    onChange={() => handleOptionSelect(option.id)}
-                  />
-                  <label
-                    htmlFor={`option-${option.id}`}
-                    className="option-label"
-                  >
-                    {option.text}
-                  </label>
+      {/* Main Content - Only show if there's a test attempt */}
+      {testAttempt ? (
+        <div className="main-content">
+          {/* Question Area */}
+          <div className="question-area">
+            {currentQuestion ? (
+              <>
+                <div className="question-title">
+                  Question {currentQuestionIndex + 1}
+                  {currentQuestion.required && <span className="required-mark">*</span>}
+                  <span className="question-type">({currentQuestion.type})</span>
                 </div>
-              ))}
-          </div>
 
-          <div className="button-area">
-            <button
-              onClick={handleClearAnswer}
-              className="btn btn-clear"
-              disabled={!hasSelectedOption()}
-            >
-              Clear Answer
-            </button>
-            <button
-              onClick={handleMarkForReview}
-              className={`btn ${
-                isMarkedForReview() ? "btn-unmark" : "btn-review"
-              }`}
-            >
-              {isMarkedForReview() ? "Unmark Review" : "Mark for Review"}
-            </button>
-            <button
-              onClick={handlePrevious}
-              className="btn btn-nav"
-              disabled={
-                currentQuestionIndex === 0 && currentSection === "SectionA"
-              }
-            >
-              Previous
-            </button>
-            <button
-              onClick={handleNext}
-              className="btn btn-nav"
-              disabled={
-                currentQuestionIndex === questions[currentSection].length - 1 &&
-                currentSection === "SectionB"
-              }
-            >
-              Next
-            </button>
-          </div>
-        </div>
+                <div className="question-text">
+                  <p>{currentQuestion.text}</p>
+                </div>
 
-        {/* Navigation Panel */}
-        <div className="navigation-area">
-          <div className="nav-header">
-            <h3>Question Navigator</h3>
-            <div className="question-count">
-              {calculateProgress()}% Complete
-            </div>
-          </div>
+                <div className="options">
+                  {currentQuestion.type === "MCQ" && (
+                    <div className="mcq-options">
+                      {currentQuestion.options.map((option) => (
+                        <div
+                          key={option.id}
+                          className={`option ${
+                            test.isPublished 
+                              ? option.isCorrect 
+                                ? 'correct' 
+                                : option.isSelected 
+                                  ? 'incorrect' 
+                                  : '' 
+                              : answers[currentQuestion.id]?.optionId === option.id 
+                                ? 'selected' 
+                                : ''
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            id={`option-${option.id}`}
+                            name={`question-${currentQuestion.id}`}
+                            checked={test.isPublished ? option.isSelected : answers[currentQuestion.id]?.optionId === option.id}
+                            onChange={() => handleOptionSelect(currentQuestion.id, option.id)}
+                            disabled={test.isPublished}
+                          />
+                          <label className="option-label" htmlFor={`option-${option.id}`}>
+                            {option.text}
+                            {test.isPublished && option.isCorrect && <span className="correct-mark">✓</span>}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
-          {/* SectionA */}
-          <div className="section">
-            <div
-              className="section-title collapsible"
-              onClick={() => toggleSection("SectionA")}
-            >
-              <span>Section A ({questions.SectionA.length} Questions)</span>
-              <span
-                className={`collapse-icon ${
-                  expandedSections.SectionA ? "expanded" : ""
-                }`}
-              >
-                &#9650;
-              </span>
-            </div>
-            <div
-              className={`question-grid-container ${
-                expandedSections.SectionA ? "expanded" : ""
-              }`}
-            >
-              <div className="question-grid">
-                {questions.SectionA.map((question) => (
+                  {currentQuestion.type === "CHECKBOX" && (
+                    <div className="checkbox-options">
+                      {currentQuestion.options.map((option) => (
+                        <div 
+                          key={option.id} 
+                          className={`option ${
+                            test.isPublished 
+                              ? option.isCorrect 
+                                ? 'correct' 
+                                : option.isSelected 
+                                  ? 'incorrect' 
+                                  : '' 
+                              : answers[currentQuestion.id]?.selectedOptions?.includes(option.id) 
+                                ? 'selected' 
+                                : ''
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            id={`option-${option.id}`}
+                            checked={test.isPublished ? option.isSelected : answers[currentQuestion.id]?.selectedOptions?.includes(option.id)}
+                            onChange={(e) => handleCheckboxSelect(currentQuestion.id, option.id, e.target.checked)}
+                            disabled={test.isPublished}
+                          />
+                          <label className="option-label" htmlFor={`option-${option.id}`}>
+                            {option.text}
+                            {test.isPublished && option.isCorrect && <span className="correct-mark">✓</span>}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {currentQuestion.type === "TEXT" && (
+                  <div className="text-answer">
+                    {test.isPublished && currentQuestion.studentAnswer ? (
+                      <div className="published-answer">
+                        <div className="answer-label">Your Answer:</div>
+                        <div className="answer-content">{currentQuestion.studentAnswer}</div>
+                      </div>
+                    ) : (
+                      <textarea
+                        placeholder="Type your answer here..."
+                        value={answers[currentQuestion.id]?.textAnswer || ""}
+                        onChange={(e) => handleTextAnswer(currentQuestion.id, e.target.value)}
+                        disabled={test.isPublished}
+                      ></textarea>
+                    )}
+                  </div>
+                )}
+
+                {currentQuestion.type === "CODING" && (
+                  <div className="coding-answer">
+                    {test.isPublished && currentQuestion.studentAnswer ? (
+                      <div className="published-answer">
+                        <div className="answer-label">Your Code:</div>
+                        <pre className="code-display">{currentQuestion.studentAnswer}</pre>
+                      </div>
+                    ) : (
+                      <textarea
+                        className="code-editor"
+                        placeholder="Write your code here..."
+                        value={answers[currentQuestion.id]?.codeAnswer || currentQuestion.starterCode || ""}
+                        onChange={(e) => handleCodeAnswer(currentQuestion.id, e.target.value)}
+                        disabled={test.isPublished}
+                      ></textarea>
+                    )}
+                  </div>
+                )}
+
+                <div className="button-area">
                   <button
-                    key={`sectiona-${question.id}`}
-                    onClick={() =>
-                      handleQuestionNavigation("SectionA", question.id)
-                    }
-                    className={`question-btn ${getStatusClass(
-                      question.status
-                    )}`}
+                    className="btn btn-review"
+                    onClick={() => markForReview(currentQuestion.id)}
                   >
-                    {question.id}
+                    Mark for Review
                   </button>
-                ))}
+                  <div className="navigation-buttons">
+                    <button
+                      className="btn btn-nav"
+                      disabled={
+                        currentSection === "SectionA" && currentQuestionIndex === 0
+                      }
+                      onClick={() => {
+                        if (currentQuestionIndex > 0) {
+                          setCurrentQuestionIndex(currentQuestionIndex - 1);
+                        } else if (currentSection === "SectionB") {
+                          setCurrentSection("SectionA");
+                          setCurrentQuestionIndex(sections.SectionA.length - 1);
+                        }
+                      }}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      className="btn btn-nav"
+                      disabled={
+                        currentSection === "SectionB" &&
+                        currentQuestionIndex === sections.SectionB.length - 1
+                      }
+                      onClick={() => {
+                        if (
+                          currentQuestionIndex <
+                          currentQuestions.length - 1
+                        ) {
+                          setCurrentQuestionIndex(currentQuestionIndex + 1);
+                        } else if (currentSection === "SectionA") {
+                          setCurrentSection("SectionB");
+                          setCurrentQuestionIndex(0);
+                        }
+                      }}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="no-question-message">
+                <p>No questions available in this section.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Area */}
+          <div className="navigation-area">
+            <div className="nav-header">
+              <h3>Questions</h3>
+              <div className="question-count">
+                {Object.values(sections).flat().length} Questions
               </div>
             </div>
-          </div>
 
-          {/* SectionB */}
-          <div className="section">
-            <div
-              className="section-title collapsible"
-              onClick={() => toggleSection("SectionB")}
-            >
-              <span>Section B ({questions.SectionB.length} Questions)</span>
-              <span
-                className={`collapse-icon ${
-                  expandedSections.SectionB ? "expanded" : ""
-                }`}
-              >
-                &#9650;
-              </span>
-            </div>
-            <div
-              className={`question-grid-container ${
-                expandedSections.SectionB ? "expanded" : ""
-              }`}
-            >
-              <div className="question-grid">
-                {questions.SectionB.map((question) => (
-                  <button
-                    key={`sectionb-${question.id}`}
-                    onClick={() =>
-                      handleQuestionNavigation("SectionB", question.id)
-                    }
-                    className={`question-btn ${getStatusClass(
-                      question.status
-                    )}`}
-                  >
-                    {question.id}
-                  </button>
-                ))}
+            {Object.keys(sections).map((section) => (
+              <div key={section} className="section">
+                <div 
+                  className={`section-title collapsible`}
+                  onClick={() => toggleSection(section)}
+                >
+                  {section}
+                  <span className={`collapse-icon ${expandedSections[section] ? 'expanded' : ''}`}>
+                    {expandedSections[section] ? '▼' : '▶'}
+                  </span>
+                </div>
+
+                <div className={`question-grid-container ${expandedSections[section] ? 'expanded' : ''}`}>
+                  <div className="question-grid">
+                    {sections[section].map((question, index) => (
+                      <button
+                        key={question.id}
+                        className={`question-btn ${
+                          answers[question.id]?.status === "answered" ? "answered" : 
+                          answers[question.id]?.status === "marked-for-review" ? "review" : 
+                          "not-attempted"
+                        } ${
+                          currentSection === section &&
+                          currentQuestionIndex === index
+                            ? "current"
+                            : ""
+                        }`}
+                        onClick={() => navigateToQuestion(section, index)}
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <div className="legend">
+              <div className="legend-item">
+                <div className="legend-color not-attempted"></div>
+                <span className="legend-text">Not Attempted</span>
+              </div>
+              <div className="legend-item">
+                <div className="legend-color current"></div>
+                <span className="legend-text">Current</span>
+              </div>
+              <div className="legend-item">
+                <div className="legend-color answered"></div>
+                <span className="legend-text">Answered</span>
+              </div>
+              <div className="legend-item">
+                <div className="legend-color review"></div>
+                <span className="legend-text">Marked for Review</span>
               </div>
             </div>
-          </div>
 
-          {/* Submit Button */}
-          <div className="submit-area">
-            <button className="btn btn-submit">Submit Test</button>
-          </div>
-
-          {/* Legend */}
-          <div className="legend">
-            <div className="legend-item">
-              <div className="legend-color current"></div>
-              <div className="legend-text">Current</div>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color not-attempted"></div>
-              <div className="legend-text">Not Attempted</div>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color answered"></div>
-              <div className="legend-text">Answered</div>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color review"></div>
-              <div className="legend-text">Review</div>
+            <div className="submit-area">
+              <button 
+                className="btn btn-submit"
+                onClick={handleSubmitTest}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Submit Test"}
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      ) : !error && !success && (
+        <div className="loading-container">
+          <p>Loading test...</p>
+        </div>
+      )}
     </div>
   );
 };
 
-export default ExamPlatform;
+export default StudentTest;

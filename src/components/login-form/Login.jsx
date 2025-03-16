@@ -1,15 +1,22 @@
 import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./login.css";
 
 const LoginForm = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  
   const [formData, setState] = useState({
-    username: "",
+    email: "",
     password: "",
     rememberMe: false,
   });
 
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -17,13 +24,28 @@ const LoginForm = () => {
       ...formData,
       [name]: type === "checkbox" ? checked : value,
     });
+    
+    // Clear errors when field is changed
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ""
+      });
+    }
+    
+    // Clear API error when form is changed
+    if (apiError) {
+      setApiError("");
+    }
   };
 
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.username.trim()) {
-      newErrors.username = "Username is required";
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email is invalid";
     }
 
     if (!formData.password) {
@@ -35,20 +57,32 @@ const LoginForm = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
 
     if (Object.keys(newErrors).length === 0) {
-      // Submit the form - would connect to authentication API
-      console.log("Form submitted successfully", formData);
-      // Reset form after successful submission
-      setState({
-        username: "",
-        password: "",
-        rememberMe: false,
-      });
-      setErrors({});
+      try {
+        setIsSubmitting(true);
+        setApiError("");
+        
+        // Call login API
+        await login({
+          email: formData.email,
+          password: formData.password
+        });
+        
+        // Redirect to dashboard on success
+        navigate("/dashboard");
+      } catch (error) {
+        console.error("Login error:", error);
+        setApiError(
+          error.response?.data?.message || 
+          "Login failed. Please check your credentials and try again."
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setErrors(newErrors);
     }
@@ -67,23 +101,30 @@ const LoginForm = () => {
           <p>Sign in to your account</p>
         </div>
 
+        {apiError && (
+          <div className="error-alert">
+            {apiError}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="email">Email</label>
             <div className="input-container">
               <i className="icon icon-user"></i>
               <input
-                type="text"
-                id="username"
-                name="username"
-                placeholder="Enter your username"
-                value={formData.username}
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Enter your email"
+                value={formData.email}
                 onChange={handleChange}
-                className={errors.username ? "error" : ""}
+                className={errors.email ? "error" : ""}
+                disabled={isSubmitting}
               />
             </div>
-            {errors.username && (
-              <span className="error-message">{errors.username}</span>
+            {errors.email && (
+              <span className="error-message">{errors.email}</span>
             )}
           </div>
 
@@ -99,6 +140,7 @@ const LoginForm = () => {
                 value={formData.password}
                 onChange={handleChange}
                 className={errors.password ? "error" : ""}
+                disabled={isSubmitting}
               />
               <button
                 type="button"
@@ -121,26 +163,29 @@ const LoginForm = () => {
                 name="rememberMe"
                 checked={formData.rememberMe}
                 onChange={handleChange}
+                disabled={isSubmitting}
               />
               <label htmlFor="rememberMe" className="checkbox-label">
                 Remember me
               </label>
             </div>
-            <a href="/forgot-password" className="forgot-password">
+            <Link to="/forgot-password" className="forgot-password">
               Forgot Password?
-            </a>
+            </Link>
           </div>
 
-          <button type="submit" className="login-button">
-            Sign In
+          <button 
+            type="submit" 
+            className="login-button"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Signing In..." : "Sign In"}
           </button>
-
-         
         </form>
 
         <div className="login-footer">
           <p className="help-text">
-            Don't have an account? <a href="/register">Create account</a>
+            Don't have an account? <Link to="/signup">Create account</Link>
           </p>
           <p className="help-text">
             Need help?{" "}

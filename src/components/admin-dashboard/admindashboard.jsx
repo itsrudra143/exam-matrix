@@ -1,5 +1,9 @@
-import React, { useState } from "react";
-import "./AdminDashboard.css";
+import React, { useState, useEffect } from "react";
+import "./admindashboard.css";
+import { useAuth } from "../../context/AuthContext";
+import { useTests, useUpdateTest, usePublishTest } from "../../hooks/useTests";
+import { useAllTestAttempts } from "../../hooks/useTests";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -17,225 +21,117 @@ import {
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
-
-  const chartData = [
-    { group: "G1", passed: 10, failed: 2 },
-    { group: "G2", passed: 8, failed: 4 },
-    { group: "G3", passed: 12, failed: 1 },
-    { group: "G4", passed: 9, failed: 3 },
-    { group: "G5", passed: 11, failed: 2 },
-    { group: "G6", passed: 7, failed: 5 },
-    { group: "G7", passed: 10, failed: 3 },
-    { group: "G8", passed: 8, failed: 4 },
-    { group: "G9", passed: 13, failed: 1 },
-    { group: "G10", passed: 9, failed: 3 },
-    { group: "G11", passed: 11, failed: 2 },
-    { group: "G12", passed: 7, failed: 5 },
-  ];
-
-  const studentsData = [
-    {
-      id: 1,
-      name: "Aryan Sharma",
-      rollNo: "2210990701",
-      group: "G1",
-      marks: 98,
-      total: 100,
-    },
-    {
-      id: 2,
-      name: "Priya Verma",
-      rollNo: "2210990702",
-      group: "G1",
-      marks: 95,
-      total: 100,
-    },
-    {
-      id: 3,
-      name: "Rohan Gupta",
-      rollNo: "2210990703",
-      group: "G2",
-      marks: 92,
-      total: 100,
-    },
-    {
-      id: 4,
-      name: "Simran Kaur",
-      rollNo: "2210990704",
-      group: "G2",
-      marks: 96,
-      total: 100,
-    },
-    {
-      id: 5,
-      name: "Vikram Singh",
-      rollNo: "2210990705",
-      group: "G3",
-      marks: 89,
-      total: 100,
-    },
-    {
-      id: 6,
-      name: "Neha Patel",
-      rollNo: "2210990706",
-      group: "G3",
-      marks: 97,
-      total: 100,
-    },
-    {
-      id: 7,
-      name: "Amit Kumar",
-      rollNo: "2210990707",
-      group: "G4",
-      marks: 88,
-      total: 100,
-    },
-    {
-      id: 8,
-      name: "Shreya Das",
-      rollNo: "2210990708",
-      group: "G4",
-      marks: 91,
-      total: 100,
-    },
-    {
-      id: 9,
-      name: "Kunal Mehta",
-      rollNo: "2210990709",
-      group: "G5",
-      marks: 93,
-      total: 100,
-    },
-    {
-      id: 10,
-      name: "Ananya Rao",
-      rollNo: "2210990710",
-      group: "G5",
-      marks: 90,
-      total: 100,
-    },
-    {
-      id: 11,
-      name: "Rahul Yadav",
-      rollNo: "2210990711",
-      group: "G6",
-      marks: 85,
-      total: 100,
-    },
-    {
-      id: 12,
-      name: "Megha Kapoor",
-      rollNo: "2210990712",
-      group: "G6",
-      marks: 94,
-      total: 100,
-    },
-    {
-      id: 13,
-      name: "Arjun Nair",
-      rollNo: "2210990713",
-      group: "G7",
-      marks: 87,
-      total: 100,
-    },
-    {
-      id: 14,
-      name: "Riya Bansal",
-      rollNo: "2210990714",
-      group: "G7",
-      marks: 99,
-      total: 100,
-    },
-    {
-      id: 15,
-      name: "Siddharth Joshi",
-      rollNo: "2210990715",
-      group: "G8",
-      marks: 82,
-      total: 100,
-    },
-    {
-      id: 16,
-      name: "Pooja Mishra",
-      rollNo: "2210990716",
-      group: "G8",
-      marks: 86,
-      total: 100,
-    },
-    {
-      id: 17,
-      name: "Tarun Malhotra",
-      rollNo: "2210990717",
-      group: "G9",
-      marks: 80,
-      total: 100,
-    },
-    {
-      id: 18,
-      name: "Swati Aggarwal",
-      rollNo: "2210990718",
-      group: "G9",
-      marks: 83,
-      total: 100,
-    },
-    {
-      id: 19,
-      name: "Manish Choudhary",
-      rollNo: "2210990719",
-      group: "G10",
-      marks: 84,
-      total: 100,
-    },
-    {
-      id: 20,
-      name: "Sneha Reddy",
-      rollNo: "2210990720",
-      group: "G10",
-      marks: 81,
-      total: 100,
-    },
-    {
-      id: 21,
-      name: "Rudrakshi",
-      rollNo: "2210990747",
-      group: "G12",
-      marks: 98,
-      total: 100,
-    },
-    {
-      id: 22,
-      name: "Mayra",
-      rollNo: "2210990982",
-      group: "G2",
-      marks: 96.5,
-      total: 100,
-    },
-    {
-      id: 23,
-      name: "Harry",
-      rollNo: "2210990103",
-      group: "G8",
-      marks: 95,
-      total: 100,
-    },
-  ];
-
-  const topPerformers = studentsData
-    .sort((a, b) => b.marks - a.marks)
-    .slice(0, 3)
-    .map((student, index) => ({
-      rank: index + 1,
-      name: student.name,
-      rollNo: student.rollNo,
-      group: student.group,
-      score: `${student.marks}%`,
-    }));
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { data: testsData, isLoading: testsLoading, refetch: refetchTests } = useTests();
+  const { data: testAttempts, isLoading: attemptsLoading } = useAllTestAttempts();
+  const updateTestMutation = useUpdateTest();
+  const publishTestMutation = usePublishTest();
+  
+  // Local state for tests that we can update immediately
+  const [tests, setTests] = useState([]);
+  
+  // Update local tests state when API data changes
+  useEffect(() => {
+    if (testsData) {
+      setTests(testsData);
+    }
+  }, [testsData]);
+  
+  // State for test settings dialog
+  const [showTestSettingsDialog, setShowTestSettingsDialog] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [updatingTest, setUpdatingTest] = useState(false);
+  const [editMaxAttempts, setEditMaxAttempts] = useState("");
+  const [isUnlimitedAttempts, setIsUnlimitedAttempts] = useState(false);
+  const [editExpiryDuration, setEditExpiryDuration] = useState("");
+  const [editExpiryUnit, setEditExpiryUnit] = useState("days");
+  const [isInfiniteExpiry, setIsInfiniteExpiry] = useState(true);
+  const [editStartDate, setEditStartDate] = useState("");
+  const [editStartTime, setEditStartTime] = useState("");
+  const [useStartDateTime, setUseStartDateTime] = useState(false);
+  
+  // Group test attempts by batch/group for chart data
+  const [chartData, setChartData] = useState([]);
+  const [studentsData, setStudentsData] = useState([]);
+  const [topPerformers, setTopPerformers] = useState([]);
+  const [stats, setStats] = useState({
+    totalPassed: 0,
+    totalFailed: 0,
+    passRate: 0,
+    failRate: 0
+  });
+  
+  useEffect(() => {
+    if (testAttempts) {
+      // Process test attempts into student data
+      const processedStudents = testAttempts.map(attempt => ({
+        id: attempt.id,
+        name: `${attempt.user.firstName} ${attempt.user.lastName}`,
+        rollNo: attempt.user.rollNumber || "N/A",
+        group: attempt.user.batch || "N/A",
+        marks: attempt.score || 0,
+        total: 100, // Assuming total is 100
+        testTitle: attempt.test.title
+      }));
+      
+      setStudentsData(processedStudents);
+      
+      // Calculate top performers
+      const sortedStudents = [...processedStudents].sort((a, b) => b.marks - a.marks);
+      const top3 = sortedStudents.slice(0, 3).map((student, index) => ({
+        rank: index + 1,
+        name: student.name,
+        rollNo: student.rollNo,
+        group: student.group,
+        score: `${Math.round(student.marks)}%`,
+      }));
+      
+      setTopPerformers(top3);
+      
+      // Group by batch/group for chart data
+      const groupedByBatch = {};
+      processedStudents.forEach(student => {
+        const group = student.group;
+        if (!groupedByBatch[group]) {
+          groupedByBatch[group] = { group, passed: 0, failed: 0 };
+        }
+        
+        if (student.marks >= 40) {
+          groupedByBatch[group].passed += 1;
+        } else {
+          groupedByBatch[group].failed += 1;
+        }
+      });
+      
+      const chartDataArray = Object.values(groupedByBatch);
+      setChartData(chartDataArray);
+      
+      // Calculate overall stats
+      const totalPassed = processedStudents.filter(s => s.marks >= 40).length;
+      const totalFailed = processedStudents.length - totalPassed;
+      const passRate = processedStudents.length > 0 
+        ? (totalPassed / processedStudents.length * 100).toFixed(1) 
+        : 0;
+      const failRate = processedStudents.length > 0 
+        ? (totalFailed / processedStudents.length * 100).toFixed(1) 
+        : 0;
+      
+      setStats({
+        totalPassed,
+        totalFailed,
+        passRate,
+        failRate
+      });
+    }
+  }, [testAttempts]);
 
   const filteredStudents = studentsData.filter(
     (student) =>
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.rollNo.includes(searchTerm) ||
-      student.group.toLowerCase().includes(searchTerm.toLowerCase())
+      student.group.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.testTitle?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getGradeColor = (marks) => {
@@ -247,13 +143,233 @@ const AdminDashboard = () => {
   };
 
   const COLORS = ["#4CAF50", "#2196F3", "#FF9800", "#FFC107", "#F44336"];
+  
+  // Format date for display
+  const formatDate = () => {
+    const date = new Date();
+    return date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+  };
+
+  if (testsLoading || attemptsLoading) {
+    return <div className="loading">Loading dashboard data...</div>;
+  }
+
+  // Function to handle test settings
+  const openTestSettings = (test) => {
+    // Make sure we're using the most up-to-date test data
+    const currentTest = tests.find(t => t.id === test.id) || test;
+    setSelectedTest(currentTest);
+    
+    // Set max attempts
+    setEditMaxAttempts(currentTest.maxAttempts === null ? "" : currentTest.maxAttempts.toString());
+    setIsUnlimitedAttempts(currentTest.maxAttempts === null);
+    
+    // Set expiry duration and unit
+    setEditExpiryDuration(currentTest.expiryDuration === null ? "" : currentTest.expiryDuration.toString());
+    setIsInfiniteExpiry(currentTest.expiryDuration === null);
+    setEditExpiryUnit(currentTest.expiryUnit || "days");
+    
+    // Set start date and time
+    if (currentTest.startTime) {
+      const startDate = new Date(currentTest.startTime);
+      setEditStartDate(startDate.toISOString().split('T')[0]);
+      setEditStartTime(startDate.toTimeString().slice(0, 5));
+      setUseStartDateTime(true);
+    } else {
+      setEditStartDate("");
+      setEditStartTime("");
+      setUseStartDateTime(false);
+    }
+    
+    setShowTestSettingsDialog(true);
+  };
+
+  // Function to close test settings dialog
+  const closeTestSettings = () => {
+    setShowTestSettingsDialog(false);
+    setSelectedTest(null);
+  };
+
+  // Function to toggle test status (enable/disable)
+  const toggleTestStatus = async () => {
+    if (!selectedTest) return;
+    
+    try {
+      setUpdatingTest(true);
+      
+      // Update the test status in the database
+      await updateTestMutation.mutateAsync({
+        id: selectedTest.id,
+        testData: { 
+          isActive: !selectedTest.isActive 
+        }
+      });
+      
+      // Update the selected test in state
+      const newIsActive = !selectedTest.isActive;
+      setSelectedTest(prev => ({
+        ...prev,
+        isActive: newIsActive
+      }));
+      
+      // Update the test in the local tests list immediately
+      setTests(currentTests => 
+        currentTests.map(test => 
+          test.id === selectedTest.id 
+            ? { ...test, isActive: newIsActive } 
+            : test
+        )
+      );
+      
+      // Refetch tests in the background to ensure we have the latest data
+      refetchTests();
+      
+      setUpdatingTest(false);
+    } catch (error) {
+      console.error("Error toggling test status:", error);
+      setUpdatingTest(false);
+    }
+  };
+
+  // Function to release test results
+  const releaseTestResults = async () => {
+    if (!selectedTest) return;
+    
+    try {
+      setUpdatingTest(true);
+      
+      // Update the test results release status in the database
+      await publishTestMutation.mutateAsync({
+        id: selectedTest.id,
+        scheduleData: { 
+          isPublished: true
+        }
+      });
+      
+      // Update the selected test in state
+      setSelectedTest(prev => ({
+        ...prev,
+        isPublished: true,
+        status: 'COMPLETE'
+      }));
+      
+      // Update the test in the local tests list immediately
+      setTests(currentTests => 
+        currentTests.map(test => 
+          test.id === selectedTest.id 
+            ? { ...test, isPublished: true, status: 'COMPLETE' } 
+            : test
+        )
+      );
+      
+      // Refetch tests in the background to ensure we have the latest data
+      refetchTests();
+      
+      setUpdatingTest(false);
+    } catch (error) {
+      console.error("Error releasing test results:", error);
+      setUpdatingTest(false);
+    }
+  };
+
+  // Function to navigate to create test page
+  const navigateToCreateTest = () => {
+    navigate('/create-test');
+  };
+
+  // Function to update expiry duration
+  const updateExpiryDuration = async () => {
+    if (updatingTest) return;
+    
+    try {
+      setUpdatingTest(true);
+      
+      const updatedTest = await updateTestMutation.mutateAsync({
+        id: selectedTest.id,
+        expiryDuration: isInfiniteExpiry ? null : parseInt(editExpiryDuration),
+        expiryUnit: editExpiryUnit
+      });
+      
+      // Update local state
+      setTests(prev => prev.map(t => t.id === updatedTest.id ? {
+        ...t, 
+        expiryDuration: updatedTest.expiryDuration,
+        expiryUnit: updatedTest.expiryUnit
+      } : t));
+      
+      setSelectedTest({
+        ...selectedTest, 
+        expiryDuration: updatedTest.expiryDuration,
+        expiryUnit: updatedTest.expiryUnit
+      });
+      
+      // Show success message
+      alert("Expiry duration updated successfully");
+    } catch (error) {
+      console.error("Error updating expiry duration:", error);
+      alert("Failed to update expiry duration");
+    } finally {
+      setUpdatingTest(false);
+    }
+  };
+  
+  // Function to update start date and time
+  const updateStartDateTime = async () => {
+    if (updatingTest) return;
+    
+    try {
+      setUpdatingTest(true);
+      
+      let startDateTime = null;
+      if (useStartDateTime && editStartDate) {
+        const dateStr = editStartDate;
+        const timeStr = editStartTime || "00:00";
+        startDateTime = new Date(`${dateStr}T${timeStr}`);
+        
+        // Validate the date is in the future
+        if (startDateTime <= new Date()) {
+          alert("Start date and time must be in the future");
+          setUpdatingTest(false);
+          return;
+        }
+      }
+      
+      const updatedTest = await updateTestMutation.mutateAsync({
+        id: selectedTest.id,
+        startTime: startDateTime
+      });
+      
+      // Update local state
+      setTests(prev => prev.map(t => t.id === updatedTest.id ? {
+        ...t, 
+        startTime: updatedTest.startTime
+      } : t));
+      
+      setSelectedTest({
+        ...selectedTest, 
+        startTime: updatedTest.startTime
+      });
+      
+      // Show success message
+      alert("Start date and time updated successfully");
+    } catch (error) {
+      console.error("Error updating start date and time:", error);
+      alert("Failed to update start date and time");
+    } finally {
+      setUpdatingTest(false);
+    }
+  };
 
   return (
     <div className="dashboard-container">
       {/* Top Greeting Section - Moved above sidebar */}
       <div className="top-greeting">
         <div className="greeting-container">
-          <h1 className="greeting">Welcome back, Dr. Parneet Kaur</h1>
+          <h1 className="greeting">Welcome back, {user?.firstName} {user?.lastName}</h1>
           <p className="quote">
             "Education is the passport to the future, for tomorrow belongs to
             those who prepare for it today."
@@ -261,7 +377,7 @@ const AdminDashboard = () => {
         </div>
         <div className="header-content">
           <div className="date-display">
-            22 March 2024 | Exam Programming Setup
+            {formatDate()} | Exam Matrix Dashboard
           </div>
           <div className="header-right">
             <div className="search-container">
@@ -275,7 +391,7 @@ const AdminDashboard = () => {
             </div>
             <div className="notification-bell">
               <span>🔔</span>
-              <div className="notification-badge">3</div>
+              <div className="notification-badge">{tests?.length || 0}</div>
             </div>
           </div>
         </div>
@@ -318,11 +434,18 @@ const AdminDashboard = () => {
               <span className="nav-icon">🏆</span>
               Top Performers
             </button>
+            <button
+              className={`nav-link ${activeTab === "tests" ? "active" : ""}`}
+              onClick={() => setActiveTab("tests")}
+            >
+              <span className="nav-icon">📋</span>
+              Manage Tests
+            </button>
           </div>
           <div className="sidebar-footer">
             <div className="user-info">
               <div className="user-details">
-                <p className="user-name">Dr. Parneet Kaur</p>
+                <p className="user-name">{user?.firstName} {user?.lastName}</p>
                 <p className="user-role">Administrator</p>
               </div>
             </div>
@@ -339,9 +462,9 @@ const AdminDashboard = () => {
                     <div className="subject-details">
                       <div className="subject-icon">📚</div>
                       <div className="subject-text">
-                        <p>Exam: Java Programming</p>
-                        <p>Total Marks: 100</p>
-                        <p>Date: 1st March 2025</p>
+                        <p>Total Tests: {tests?.length || 0}</p>
+                        <p>Total Attempts: {testAttempts?.length || 0}</p>
+                        <p>Date: {formatDate()}</p>
                       </div>
                     </div>
                   </div>
@@ -349,41 +472,45 @@ const AdminDashboard = () => {
 
                 <div className="chart-container full-width">
                   <h2>📊 Group Performance Analysis</h2>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart
-                      data={chartData}
-                      margin={{
-                        top: 20,
-                        right: 30,
-                        left: 20,
-                        bottom: 20,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="group" />
-                      <YAxis />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "#fff",
-                          borderRadius: "8px",
-                          boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
+                  {chartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart
+                        data={chartData}
+                        margin={{
+                          top: 20,
+                          right: 30,
+                          left: 20,
+                          bottom: 20,
                         }}
-                      />
-                      <Legend />
-                      <Bar
-                        dataKey="passed"
-                        fill="#4CAF50"
-                        name="Passed"
-                        radius={[4, 4, 0, 0]}
-                      />
-                      <Bar
-                        dataKey="failed"
-                        fill="#FF5252"
-                        name="Failed"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="group" />
+                        <YAxis />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#fff",
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
+                          }}
+                        />
+                        <Legend />
+                        <Bar
+                          dataKey="passed"
+                          fill="#4CAF50"
+                          name="Passed"
+                          radius={[4, 4, 0, 0]}
+                        />
+                        <Bar
+                          dataKey="failed"
+                          fill="#FF5252"
+                          name="Failed"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="no-data">No test data available to display chart</div>
+                  )}
                 </div>
                 <div className="stats-container">
                   <div className="stats-grid">
@@ -391,16 +518,16 @@ const AdminDashboard = () => {
                       <div className="icon">✅</div>
                       <div className="content">
                         <h3>Students Passed</h3>
-                        <p className="stats-number">108</p>
-                        <p className="trend positive">86.4% pass rate</p>
+                        <p className="stats-number">{stats.totalPassed}</p>
+                        <p className="trend positive">{stats.passRate}% pass rate</p>
                       </div>
                     </div>
                     <div className="stat-card">
                       <div className="icon">❌</div>
                       <div className="content">
                         <h3>Students Failed</h3>
-                        <p className="stats-number">17</p>
-                        <p className="trend negative">13.6% fail rate</p>
+                        <p className="stats-number">{stats.totalFailed}</p>
+                        <p className="trend negative">{stats.failRate}% fail rate</p>
                       </div>
                     </div>
                   </div>
@@ -412,23 +539,27 @@ const AdminDashboard = () => {
               <div className="top-performers">
                 <h2>🏆 Top Performers</h2>
                 <div className="performer-cards">
-                  {topPerformers.map(({ rank, name, rollNo, group, score }) => (
-                    <div className="performer-card" key={rank}>
-                      <div className="card-content">
-                        <div className="rank-emoji">
-                          {rank === 1 && "🥇"}
-                          {rank === 2 && "🥈"}
-                          {rank === 3 && "🥉"}
-                        </div>
-                        <div className="performer-info">
-                          <h3>{name}</h3>
-                          <p className="roll-no">Roll No: {rollNo}</p>
-                          <p className="group">Group: {group}</p>
-                          <div className="score-badge">{score}</div>
+                  {topPerformers.length > 0 ? (
+                    topPerformers.map(({ rank, name, rollNo, group, score }) => (
+                      <div className="performer-card" key={rank}>
+                        <div className="card-content">
+                          <div className="rank-emoji">
+                            {rank === 1 && "🥇"}
+                            {rank === 2 && "🥈"}
+                            {rank === 3 && "🥉"}
+                          </div>
+                          <div className="performer-info">
+                            <h3>{name}</h3>
+                            <p className="roll-no">Roll No: {rollNo}</p>
+                            <p className="group">Group: {group}</p>
+                            <div className="score-badge">{score}</div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="no-data">No test data available to display top performers</div>
+                  )}
                 </div>
 
                 <div className="performance-insights">
@@ -437,22 +568,28 @@ const AdminDashboard = () => {
                     <div className="insight-card">
                       <div className="insight-icon">🚀</div>
                       <div className="insight-content">
-                        <h4>Highest Improvement</h4>
-                        <p>Riya Bansal improved by 15% compared to last exam</p>
+                        <h4>Test Participation</h4>
+                        <p>{testAttempts?.length || 0} total test attempts recorded</p>
                       </div>
                     </div>
                     <div className="insight-card">
                       <div className="insight-icon">📊</div>
                       <div className="insight-content">
                         <h4>Group Performance</h4>
-                        <p>Group G3 has the highest average score of 93%</p>
+                        <p>{chartData.length > 0 ? `${chartData.length} groups participated in tests` : 'No group data available'}</p>
                       </div>
                     </div>
                     <div className="insight-card">
                       <div className="insight-icon">⚡</div>
                       <div className="insight-content">
-                        <h4>Quick Completion</h4>
-                        <p>Top performers completed exam 35% faster</p>
+                        <h4>Average Score</h4>
+                        <p>
+                          {studentsData.length > 0
+                            ? `${Math.round(
+                                studentsData.reduce((sum, s) => sum + s.marks, 0) / studentsData.length
+                              )}% average score`
+                            : "No data available"}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -468,9 +605,9 @@ const AdminDashboard = () => {
                   <div className="filter-dropdown">
                     <select className="filter-select">
                       <option value="all">All Groups</option>
-                      <option value="G1">G1</option>
-                      <option value="G2">G2</option>
-                      <option value="G3">G3</option>
+                      {Array.from(new Set(studentsData.map(s => s.group))).map(group => (
+                        <option key={group} value={group}>{group}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="filter-dropdown">
@@ -491,79 +628,89 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="results-table">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Sno.</th>
-                        <th>Name</th>
-                        <th>Roll Number</th>
-                        <th>Group</th>
-                        <th>Marks</th>
-                        <th>Grade</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredStudents.map((student, index) => (
-                        <tr key={student.id}>
-                          <td>{index + 1}</td>
-                          <td>{student.name}</td>
-                          <td>{student.rollNo}</td>
-                          <td>{student.group}</td>
-                          <td>
-                            <div className="marks-container">
-                              <div
-                                className="marks-bar"
+                  {filteredStudents.length > 0 ? (
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Sno.</th>
+                          <th>Name</th>
+                          <th>Roll Number</th>
+                          <th>Group</th>
+                          <th>Test</th>
+                          <th>Marks</th>
+                          <th>Grade</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredStudents.map((student, index) => (
+                          <tr key={student.id}>
+                            <td>{index + 1}</td>
+                            <td>{student.name}</td>
+                            <td>{student.rollNo}</td>
+                            <td>{student.group}</td>
+                            <td>{student.testTitle || "N/A"}</td>
+                            <td>
+                              <div className="marks-container">
+                                <div
+                                  className="marks-bar"
+                                  style={{
+                                    width: `${student.marks}%`,
+                                    backgroundColor: getGradeColor(student.marks),
+                                  }}
+                                ></div>
+                                <span>
+                                  {Math.round(student.marks)}/{student.total}
+                                </span>
+                              </div>
+                            </td>
+                            <td>
+                              <span
+                                className="grade-badge"
                                 style={{
-                                  width: `${student.marks}%`,
                                   backgroundColor: getGradeColor(student.marks),
                                 }}
-                              ></div>
-                              <span>
-                                {student.marks}/{student.total}
+                              >
+                                {student.marks >= 90
+                                  ? "A"
+                                  : student.marks >= 80
+                                  ? "B"
+                                  : student.marks >= 70
+                                  ? "C"
+                                  : student.marks >= 60
+                                  ? "D"
+                                  : "F"}
                               </span>
-                            </div>
-                          </td>
-                          <td>
-                            <span
-                              className="grade-badge"
-                              style={{
-                                backgroundColor: getGradeColor(student.marks),
-                              }}
-                            >
-                              {student.marks >= 90
-                                ? "A"
-                                : student.marks >= 80
-                                ? "B"
-                                : student.marks >= 70
-                                ? "C"
-                                : student.marks >= 60
-                                ? "D"
-                                : "F"}
-                            </span>
-                          </td>
-                          <td>
-                            <span
-                              className={`status-badge ${
-                                student.marks >= 40 ? "passed" : "failed"
-                              }`}
-                            >
-                              {student.marks >= 40 ? "PASSED" : "FAILED"}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                            </td>
+                            <td>
+                              <span
+                                className={`status-badge ${
+                                  student.marks >= 40 ? "passed" : "failed"
+                                }`}
+                              >
+                                {student.marks >= 40 ? "PASSED" : "FAILED"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="no-data">No test results found</div>
+                  )}
                 </div>
 
-                <div className="pagination">
-                  <button className="pagination-button active">1</button>
-                  <button className="pagination-button">2</button>
-                  <button className="pagination-button">3</button>
-                  <button className="pagination-button">...</button>
-                  <button className="pagination-button">7</button>
-                </div>
+                {filteredStudents.length > 10 && (
+                  <div className="pagination">
+                    <button className="pagination-button active">1</button>
+                    <button className="pagination-button">2</button>
+                    <button className="pagination-button">3</button>
+                    <button className="pagination-button">...</button>
+                    <button className="pagination-button">
+                      {Math.ceil(filteredStudents.length / 10)}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -573,109 +720,76 @@ const AdminDashboard = () => {
 
                 <div className="analytics-cards">
                   <div className="analytics-card">
-                    <h3>Performance by Topic</h3>
+                    <h3>Performance Summary</h3>
                     <p className="analytics-insight">
-                      Students scored highest in OOP concepts (92% avg)
+                      {stats.passRate}% overall pass rate across all tests
                     </p>
-                    <p className="analytics-insight negative">
-                      Lowest scores in Exception Handling (68% avg)
+                    {stats.passRate < 70 && (
+                      <p className="analytics-insight negative">
+                        Pass rate is below target of 70%
+                      </p>
+                    )}
+                    {stats.passRate >= 70 && (
+                      <p className="analytics-insight positive">
+                        Pass rate is above target of 70%
+                      </p>
+                    )}
+                  </div>
+                  <div className="analytics-card">
+                    <h3>Test Statistics</h3>
+                    <p className="analytics-insight">
+                      {tests?.length || 0} total tests created
+                    </p>
+                    <p className="analytics-insight">
+                      {testAttempts?.length || 0} total test attempts
                     </p>
                   </div>
                   <div className="analytics-card">
-                    <h3>Time Analysis</h3>
+                    <h3>Student Engagement</h3>
                     <p className="analytics-insight">
-                      Average completion time: 1h 42m
+                      {new Set(studentsData.map(s => s.name)).size} unique students took tests
                     </p>
                     <p className="analytics-insight">
-                      Most time spent on: Advanced Java Questions
-                    </p>
-                  </div>
-                  <div className="analytics-card">
-                    <h3>Comparison to Previous</h3>
-                    <p className="analytics-insight positive">
-                      Overall improvement: 8.5%
-                    </p>
-                    <p className="analytics-insight">
-                      Top improved group: G7 (+12.3%)
+                      {Math.round(testAttempts?.length / (new Set(studentsData.map(s => s.name)).size || 1))} 
+                      {" "}tests per student on average
                     </p>
                   </div>
                 </div>
 
                 <div className="chart-container">
-                  <h3>Question Difficulty Analysis</h3>
+                  <h3>Score Distribution</h3>
                   <div className="difficulty-bars">
-                    <div className="difficulty-bar-container">
-                      <div className="difficulty-label">Q1 - Variables</div>
-                      <div className="difficulty-track">
-                        <div
-                          className="difficulty-fill easy"
-                          style={{ width: "15%" }}
-                        ></div>
-                      </div>
-                      <div className="difficulty-value">Easy (15%)</div>
-                    </div>
-                    <div className="difficulty-bar-container">
-                      <div className="difficulty-label">Q2 - Methods</div>
-                      <div className="difficulty-track">
-                        <div
-                          className="difficulty-fill easy"
-                          style={{ width: "25%" }}
-                        ></div>
-                      </div>
-                      <div className="difficulty-value">Easy (25%)</div>
-                    </div>
-                    <div className="difficulty-bar-container">
-                      <div className="difficulty-label">Q3 - Classes</div>
-                      <div className="difficulty-track">
-                        <div
-                          className="difficulty-fill medium"
-                          style={{ width: "45%" }}
-                        ></div>
-                      </div>
-                      <div className="difficulty-value">Medium (45%)</div>
-                    </div>
-                    <div className="difficulty-bar-container">
-                      <div className="difficulty-label">Q4 - Inheritance</div>
-                      <div className="difficulty-track">
-                        <div
-                          className="difficulty-fill medium"
-                          style={{ width: "52%" }}
-                        ></div>
-                      </div>
-                      <div className="difficulty-value">Medium (52%)</div>
-                    </div>
-                    <div className="difficulty-bar-container">
-                      <div className="difficulty-label">Q5 - Polymorphism</div>
-                      <div className="difficulty-track">
-                        <div
-                          className="difficulty-fill hard"
-                          style={{ width: "68%" }}
-                        ></div>
-                      </div>
-                      <div className="difficulty-value">Hard (68%)</div>
-                    </div>
-                    <div className="difficulty-bar-container">
-                      <div className="difficulty-label">Q6 - Interfaces</div>
-                      <div className="difficulty-track">
-                        <div
-                          className="difficulty-fill hard"
-                          style={{ width: "72%" }}
-                        ></div>
-                      </div>
-                      <div className="difficulty-value">Hard (72%)</div>
-                    </div>
-                    <div className="difficulty-bar-container">
-                      <div className="difficulty-label">
-                        Q7 - Exception Handling
-                      </div>
-                      <div className="difficulty-track">
-                        <div
-                          className="difficulty-fill very-hard"
-                          style={{ width: "85%" }}
-                        ></div>
-                      </div>
-                      <div className="difficulty-value">Very Hard (85%)</div>
-                    </div>
+                    {[
+                      { label: "90-100%", range: [90, 100], class: "easy" },
+                      { label: "80-89%", range: [80, 89], class: "easy" },
+                      { label: "70-79%", range: [70, 79], class: "medium" },
+                      { label: "60-69%", range: [60, 69], class: "medium" },
+                      { label: "50-59%", range: [50, 59], class: "hard" },
+                      { label: "40-49%", range: [40, 49], class: "hard" },
+                      { label: "Below 40%", range: [0, 39], class: "very-hard" },
+                    ].map((range) => {
+                      const count = studentsData.filter(
+                        (s) => s.marks >= range.range[0] && s.marks <= range.range[1]
+                      ).length;
+                      const percentage = studentsData.length > 0 
+                        ? (count / studentsData.length) * 100 
+                        : 0;
+                      
+                      return (
+                        <div className="difficulty-bar-container" key={range.label}>
+                          <div className="difficulty-label">{range.label}</div>
+                          <div className="difficulty-track">
+                            <div
+                              className={`difficulty-fill ${range.class}`}
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                          <div className="difficulty-value">
+                            {count} students ({Math.round(percentage)}%)
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -685,10 +799,11 @@ const AdminDashboard = () => {
                     <div className="recommendation-card">
                       <div className="recommendation-icon">📚</div>
                       <div className="recommendation-content">
-                        <h4>Review Exception Handling</h4>
+                        <h4>Focus Areas</h4>
                         <p>
-                          Consider additional workshops or material on exception
-                          handling concepts
+                          {stats.failRate > 30 
+                            ? "Consider additional review sessions to improve pass rate" 
+                            : "Continue with current teaching approach"}
                         </p>
                       </div>
                     </div>
@@ -697,18 +812,20 @@ const AdminDashboard = () => {
                       <div className="recommendation-content">
                         <h4>Group Study</h4>
                         <p>
-                          Pair low-performing students with high-performers for
-                          peer learning
+                          {chartData.length > 0 && chartData.some(g => g.failed > g.passed)
+                            ? "Some groups need additional support - consider peer learning"
+                            : "All groups are performing well"}
                         </p>
                       </div>
                     </div>
                     <div className="recommendation-card">
                       <div className="recommendation-icon">🎯</div>
                       <div className="recommendation-content">
-                        <h4>Practice Tests</h4>
+                        <h4>Test Strategy</h4>
                         <p>
-                          Introduce more practice tests focused on difficult
-                          topics
+                          {tests?.length < 5
+                            ? "Create more tests to gather better performance data"
+                            : "Sufficient tests available - focus on quality"}
                         </p>
                       </div>
                     </div>
@@ -716,9 +833,250 @@ const AdminDashboard = () => {
                 </div>
               </div>
             )}
+
+            {activeTab === "tests" && (
+              <div className="tests-section">
+                <div className="section-header">
+                  <h2>📋 Manage Tests</h2>
+                  <button 
+                    className="create-test-button"
+                    onClick={navigateToCreateTest}
+                  >
+                    <span>+</span> Create New Test
+                  </button>
+                </div>
+                
+                {tests && tests.length > 0 ? (
+                  <div className="tests-list">
+                    {tests.map(test => (
+                      <div key={test.id} className="test-card">
+                        <div className="test-info">
+                          <h3>{test.title}</h3>
+                          <div className="test-details">
+                            <span className="test-detail">
+                              <span className="detail-icon">⏱️</span>
+                              {test.duration} mins
+                            </span>
+                            <span className="test-detail">
+                              <span className="detail-icon">❓</span>
+                              {test._count?.questions || 0} questions
+                            </span>
+                            <span className="test-detail">
+                              <span className="detail-icon">🔄</span>
+                              {test.maxAttempts === null ? 'Unlimited' : test.maxAttempts} attempts
+                            </span>
+                            <span className="test-detail">
+                              <span className="detail-icon">📅</span>
+                              {test.expiryDuration 
+                                ? `${test.expiryDuration} ${test.expiryUnit || 'days'}` 
+                                : 'No expiry'}
+                            </span>
+                            
+                            {test.startTime && (
+                              <span className="test-detail">
+                                <span className="detail-icon">🕒</span>
+                                Starts: {new Date(test.startTime).toLocaleDateString()}
+                              </span>
+                            )}
+                            <span className={`test-status ${test.isPublished ? 'complete' : test.isActive ? 'active' : 'inactive'}`}>
+                              {test.isPublished ? 'Complete' : test.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          <p className="test-description">
+                            {test.description?.length > 100 
+                              ? test.description.substring(0, 100) + '...' 
+                              : test.description || 'No description provided'}
+                          </p>
+                        </div>
+                        <div className="test-actions">
+                          <button 
+                            className="settings-button"
+                            onClick={() => openTestSettings(test)}
+                          >
+                            ⚙️ Settings
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="no-tests">
+                    <p>No tests created yet. Click the button above to create your first test.</p>
+                  </div>
+                )}
+              </div>
+            )}
           </main>
         </div>
       </div>
+
+      {/* Test Settings Dialog */}
+      {showTestSettingsDialog && selectedTest && (
+        <div className="dialog-overlay">
+          <div className="dialog-container">
+            <div className="dialog-header">
+              <h3>Test Settings: {selectedTest.title}</h3>
+              <button className="close-button" onClick={closeTestSettings}>×</button>
+            </div>
+            <div className="dialog-content">
+              {selectedTest.isPublished && (
+                <div className="setting-item">
+                  <div className="setting-info">
+                    <h4>Test Status</h4>
+                    <p className="status-complete">This test is complete and results are published. Settings cannot be modified.</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="setting-item">
+                <div className="setting-info">
+                  <h4>Test Status</h4>
+                  <p>Enable or disable this test for students</p>
+                </div>
+                <div className="setting-action">
+                  <button 
+                    className={`toggle-button ${selectedTest.isActive ? 'active' : 'inactive'}`}
+                    onClick={toggleTestStatus}
+                    disabled={updatingTest || selectedTest.isPublished}
+                  >
+                    {updatingTest ? 'Updating...' : selectedTest.isActive ? 'Enabled' : 'Disabled'}
+                  </button>
+                </div>
+              </div>
+              
+              <div className="setting-item">
+                <div className="setting-info">
+                  <h4>Test Results</h4>
+                  <p>Release results to all students who attempted this test</p>
+                </div>
+                <div className="setting-action">
+                  <button 
+                    className={`action-button ${selectedTest.isPublished ? 'disabled' : ''}`}
+                    onClick={releaseTestResults}
+                    disabled={selectedTest.isPublished || updatingTest}
+                  >
+                    {updatingTest ? 'Updating...' : selectedTest.isPublished ? 'Results Published' : 'Publish Results'}
+                  </button>
+                </div>
+              </div>
+              
+              <div className="setting-item">
+                <div className="setting-info">
+                  <h4>Test Analytics</h4>
+                  <p>View detailed analytics for this test</p>
+                </div>
+                <div className="setting-action">
+                  <button className="action-button">
+                    View Analytics
+                  </button>
+                </div>
+              </div>
+
+              <div className="setting-item">
+                <div className="setting-info">
+                  <h4>Test Expiry</h4>
+                  <p>Set the number of days after which the test will expire</p>
+                </div>
+                <div className="setting-action expiry-settings">
+                  <div className="checkbox-container">
+                    <input
+                      type="checkbox"
+                      id="infinite-expiry"
+                      checked={isInfiniteExpiry}
+                      onChange={(e) => setIsInfiniteExpiry(e.target.checked)}
+                      disabled={updatingTest || selectedTest.isPublished}
+                    />
+                    <label htmlFor="infinite-expiry">No expiry</label>
+                  </div>
+                  {!isInfiniteExpiry && (
+                    <div className="expiry-input">
+                      <input
+                        type="number"
+                        value={editExpiryDuration}
+                        onChange={(e) => setEditExpiryDuration(e.target.value)}
+                        min="1"
+                        disabled={isInfiniteExpiry || updatingTest || selectedTest.isPublished}
+                        className="number-input"
+                      />
+                      <select 
+                        value={editExpiryUnit}
+                        onChange={(e) => setEditExpiryUnit(e.target.value)}
+                        disabled={isInfiniteExpiry || updatingTest || selectedTest.isPublished}
+                        className="expiry-unit-select"
+                      >
+                        <option value="minutes">Minutes</option>
+                        <option value="hours">Hours</option>
+                        <option value="days">Days</option>
+                      </select>
+                    </div>
+                  )}
+                  <button 
+                    className="action-button"
+                    onClick={updateExpiryDuration}
+                    disabled={updatingTest || selectedTest.isPublished}
+                  >
+                    {updatingTest ? 'Updating...' : 'Update'}
+                  </button>
+                </div>
+              </div>
+              
+              <div className="setting-item">
+                <div className="setting-info">
+                  <h4>Start Date & Time</h4>
+                  <p>Schedule when the test will become available</p>
+                </div>
+                <div className="setting-action start-date-settings">
+                  <div className="checkbox-container">
+                    <input
+                      type="checkbox"
+                      id="use-start-date"
+                      checked={useStartDateTime}
+                      onChange={(e) => setUseStartDateTime(e.target.checked)}
+                      disabled={updatingTest || selectedTest.isPublished}
+                    />
+                    <label htmlFor="use-start-date">Schedule test start</label>
+                  </div>
+                  {useStartDateTime && (
+                    <div className="date-time-inputs">
+                      <div className="date-input">
+                        <label htmlFor="start-date">Date</label>
+                        <input
+                          type="date"
+                          id="start-date"
+                          value={editStartDate}
+                          onChange={(e) => setEditStartDate(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                          disabled={updatingTest || selectedTest.isPublished}
+                        />
+                      </div>
+                      <div className="time-input">
+                        <label htmlFor="start-time">Time</label>
+                        <input
+                          type="time"
+                          id="start-time"
+                          value={editStartTime}
+                          onChange={(e) => setEditStartTime(e.target.value)}
+                          disabled={updatingTest || selectedTest.isPublished}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <button 
+                    className="action-button"
+                    onClick={updateStartDateTime}
+                    disabled={updatingTest || selectedTest.isPublished || !useStartDateTime || !editStartDate}
+                  >
+                    {updatingTest ? 'Updating...' : 'Update'}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="dialog-footer">
+              <button className="cancel-button" onClick={closeTestSettings}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

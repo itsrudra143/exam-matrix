@@ -511,8 +511,51 @@ body {
 
 /* Add these styles for the selected option */
 .option.selected {
-  background-color: rgba(79, 70, 229, 0.1);
-  border-color: var(--primary-color);
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.option.correct {
+  background-color: #e8f5e9;
+  border-color: #4caf50;
+}
+
+.option.incorrect {
+  background-color: #ffebee;
+  border-color: #f44336;
+}
+
+.correct-mark {
+  color: #4caf50;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.published-answer {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.answer-label {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.answer-content {
+  white-space: pre-wrap;
+}
+
+.code-display {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px;
+  font-family: monospace;
+  white-space: pre-wrap;
+  overflow-x: auto;
 }
 
 /* Add these styles for the navigation header */
@@ -622,4 +665,49 @@ body {
     flex: 1;
     min-width: 120px;
   }
+}
+
+/* Message Styles */
+.messages-container {
+  background-color: var(--card-background);
+  padding: 24px;
+  border-radius: var(--border-radius);
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  padding: 16px 20px;
+  border-radius: var(--border-radius);
+  margin-bottom: 16px;
+  font-weight: 500;
+  border-left: 4px solid #ef4444;
+  box-shadow: var(--shadow);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.success-message {
+  background-color: #d1fae5;
+  color: #065f46;
+  padding: 12px 16px;
+  border-radius: var(--border-radius);
+  margin-bottom: 16px;
+  font-weight: 500;
+  border-left: 4px solid #10b981;
+  box-shadow: var(--shadow);
+}
+
+/* Loading container */
+.loading-container {
+  background-color: var(--card-background);
+  padding: 24px;
+  border-radius: var(--border-radius);
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  font-size: 18px;
+  color: var(--text-secondary);
 }
