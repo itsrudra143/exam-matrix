@@ -165,8 +165,8 @@ const AdminDashboard = () => {
     setSelectedTest(currentTest);
     
     // Set max attempts
-    setEditMaxAttempts(currentTest.maxAttempts === null ? "" : currentTest.maxAttempts.toString());
-    setIsUnlimitedAttempts(currentTest.maxAttempts === null);
+    setEditMaxAttempts(currentTest.maxAttempts === 20 ? "" : currentTest.maxAttempts.toString());
+    setIsUnlimitedAttempts(currentTest.maxAttempts === 20);
     
     // Set expiry duration and unit
     setEditExpiryDuration(currentTest.expiryDuration === null ? "" : currentTest.expiryDuration.toString());
@@ -360,6 +360,49 @@ const AdminDashboard = () => {
       console.error("Error updating start date and time:", error);
       alert("Failed to update start date and time");
     } finally {
+      setUpdatingTest(false);
+    }
+  };
+
+  // Function to update max attempts
+  const updateMaxAttempts = async () => {
+    if (!selectedTest) return;
+    
+    try {
+      setUpdatingTest(true);
+      
+      // Determine the max attempts value
+      const maxAttemptsValue = isUnlimitedAttempts ? 20 : parseInt(editMaxAttempts);
+      
+      // Update the test max attempts in the database
+      await updateTestMutation.mutateAsync({
+        id: selectedTest.id,
+        testData: { 
+          maxAttempts: maxAttemptsValue
+        }
+      });
+      
+      // Update the selected test in state
+      setSelectedTest(prev => ({
+        ...prev,
+        maxAttempts: maxAttemptsValue
+      }));
+      
+      // Update the test in the local tests list immediately
+      setTests(currentTests => 
+        currentTests.map(test => 
+          test.id === selectedTest.id 
+            ? { ...test, maxAttempts: maxAttemptsValue } 
+            : test
+        )
+      );
+      
+      // Refetch tests in the background to ensure we have the latest data
+      refetchTests();
+      
+      setUpdatingTest(false);
+    } catch (error) {
+      console.error("Error updating max attempts:", error);
       setUpdatingTest(false);
     }
   };
@@ -863,7 +906,7 @@ const AdminDashboard = () => {
                             </span>
                             <span className="test-detail">
                               <span className="detail-icon">🔄</span>
-                              {test.maxAttempts === null ? 'Unlimited' : test.maxAttempts} attempts
+                              {test.maxAttempts === 20 ? 'Unlimited' : test.maxAttempts} attempts
                             </span>
                             <span className="test-detail">
                               <span className="detail-icon">📅</span>

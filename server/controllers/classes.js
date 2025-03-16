@@ -550,6 +550,7 @@ export const getClassTests = async (req, res) => {
   try {
     const { id } = req.params; // class ID
     const { id: userId, role } = req.user;
+    const now = new Date();
     
     // Check if class exists
     const classData = await prisma.class.findUnique({
@@ -602,9 +603,13 @@ export const getClassTests = async (req, res) => {
       }
     });
     
-    // For students, filter out inactive tests
+    // For students, include both active tests and upcoming tests (inactive with future start time)
     const tests = testAssignments
-      .filter(assignment => role === 'ADMIN' || assignment.test.isActive)
+      .filter(assignment => 
+        role === 'ADMIN' || 
+        assignment.test.isActive || 
+        (assignment.test.startTime && new Date(assignment.test.startTime) > now && assignment.test.status !== 'EXPIRED')
+      )
       .map(assignment => ({
         ...assignment.test,
         testClassId: assignment.id // Include the TestClass ID for reference
@@ -614,5 +619,71 @@ export const getClassTests = async (req, res) => {
   } catch (error) {
     console.error('Get class tests error:', error);
     res.status(500).json({ message: 'Server error while fetching class tests' });
+  }
+};
+
+// Get all classes for a student
+export const getClasses = async (req, res) => {
+  try {
+    const { id: userId } = req.user;
+    const now = new Date();
+
+    // Get all classes where the user is enrolled
+    const classes = await prisma.class.findMany({
+      where: {
+        enrollments: {
+          some: {
+            userId,
+            status: 'APPROVED'
+          }
+        }
+      },
+      include: {
+        createdBy: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        },
+        _count: {
+          select: { tests: true }
+        },
+        tests: {
+          select: {
+            testId: true,
+            test: {
+              select: {
+                isActive: true,
+                startTime: true,
+                status: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Add count of upcoming tests to each class
+    const classesWithUpcomingTests = classes.map(classItem => {
+      const upcomingTests = classItem.tests.filter(test => 
+        !test.test.isActive && 
+        test.test.startTime && 
+        new Date(test.test.startTime) > now &&
+        test.test.status !== 'EXPIRED'
+      ).length;
+      
+      // Remove the tests array from the response
+      const { tests, ...classWithoutTests } = classItem;
+      
+      return {
+        ...classWithoutTests,
+        upcomingTests
+      };
+    });
+
+    res.json(classesWithUpcomingTests);
+  } catch (error) {
+    console.error('Get classes error:', error);
+    res.status(500).json({ message: 'Server error while fetching classes' });
   }
 }; 

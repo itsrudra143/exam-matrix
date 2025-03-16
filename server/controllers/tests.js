@@ -16,11 +16,11 @@ export const createTest = async (req, res) => {
           title,
           description,
           duration: duration || 60,
-          maxAttempts: maxAttempts === -1 ? null : maxAttempts || 1, // null for unlimited attempts
+          maxAttempts: maxAttempts === -1 ? 20 : maxAttempts || 1, // Use 20 for unlimited attempts instead of null
           expiryDuration: expiryDuration || null,
           expiryUnit: expiryUnit || "days",
           startTime: startTime ? new Date(startTime) : null,
-          createdById
+          createdById: createdById
         }
       });
 
@@ -426,7 +426,7 @@ export const updateTest = async (req, res) => {
           startTime: startTime ? new Date(startTime) : existingTest.startTime,
           endTime: endTime ? new Date(endTime) : existingTest.endTime,
           isActive: isActive !== undefined ? isActive : existingTest.isActive,
-          maxAttempts: maxAttempts !== undefined ? maxAttempts : existingTest.maxAttempts,
+          maxAttempts: maxAttempts === -1 ? 20 : (maxAttempts !== undefined ? maxAttempts : existingTest.maxAttempts),
           expiryDuration: expiryDuration !== undefined ? expiryDuration : existingTest.expiryDuration,
           expiryUnit: expiryUnit || existingTest.expiryUnit
         }
@@ -712,8 +712,9 @@ export const startTest = async (req, res) => {
       }
     });
 
-    // If maxAttempts is null, unlimited attempts are allowed
-    if (test.maxAttempts !== null && attemptCount >= test.maxAttempts) {
+    // If maxAttempts is 20 (our unlimited value), unlimited attempts are allowed
+    // Otherwise, check if the user has reached the maximum number of attempts
+    if (test.maxAttempts !== 20 && attemptCount >= test.maxAttempts) {
       return res.status(403).json({ 
         message: `You have reached the maximum number of attempts (${test.maxAttempts}) for this test.`,
         status: 'MAX_ATTEMPTS_REACHED'

@@ -90,6 +90,16 @@ const JoinClass = () => {
                             {classItem._count?.tests || 0} Tests
                           </Typography>
                         </Box>
+                        {classItem.upcomingTests > 0 && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Chip 
+                              label={`${classItem.upcomingTests} Upcoming`} 
+                              color="info" 
+                              size="small" 
+                              sx={{ fontWeight: 'bold' }} 
+                            />
+                          </Box>
+                        )}
                       </Box>
                     </CardContent>
                   </Card>
