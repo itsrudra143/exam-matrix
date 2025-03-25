@@ -329,26 +329,6 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.stat-card .icon {
-  font-size: 2rem;
-  margin-right: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-}
-
-.stat-card:first-child .icon {
-  background-color: #dcfce7;
-  color: #16a34a;
-}
-
-.stat-card:last-child .icon {
-  background-color: #fee2e2;
-  color: #dc2626;
-}
 
 .stat-card .content {
   flex: 1;

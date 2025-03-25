@@ -17,13 +17,13 @@ const App = () => {
       <Header />
       {/* <Hero /> */}
       {/* <StudentDashboard /> */}
-      {/* <AdminDashboard /> */}
+      <AdminDashboard />
       {/* <StudentProfileForm /> */}
       {/* <AdminProfileForm /> */}
       {/* <StudentTest /> */}
       {/* <LoginForm /> */}
       {/* <SignUp /> */}
-      <TestCreator />
+      {/* <TestCreator /> */}
       <Footer />
     </div>
   );

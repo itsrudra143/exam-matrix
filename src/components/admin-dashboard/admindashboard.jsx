@@ -388,17 +388,17 @@ const AdminDashboard = () => {
                 <div className="stats-container">
                   <div className="stats-grid">
                     <div className="stat-card">
-                      <div className="icon">✅</div>
+                  
                       <div className="content">
-                        <h3>Students Passed</h3>
+                        <h3>Students Passed ✅</h3>
                         <p className="stats-number">108</p>
                         <p className="trend positive">86.4% pass rate</p>
                       </div>
                     </div>
                     <div className="stat-card">
-                      <div className="icon">❌</div>
+                      
                       <div className="content">
-                        <h3>Students Failed</h3>
+                        <h3>Students Failed ❌</h3>
                         <p className="stats-number">17</p>
                         <p className="trend negative">13.6% fail rate</p>
                       </div>
