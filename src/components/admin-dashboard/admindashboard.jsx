@@ -23,21 +23,26 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: testsData, isLoading: testsLoading, refetch: refetchTests } = useTests();
-  const { data: testAttempts, isLoading: attemptsLoading } = useAllTestAttempts();
+  const {
+    data: testsData,
+    isLoading: testsLoading,
+    refetch: refetchTests,
+  } = useTests();
+  const { data: testAttempts, isLoading: attemptsLoading } =
+    useAllTestAttempts();
   const updateTestMutation = useUpdateTest();
   const publishTestMutation = usePublishTest();
-  
+
   // Local state for tests that we can update immediately
   const [tests, setTests] = useState([]);
-  
+
   // Update local tests state when API data changes
   useEffect(() => {
     if (testsData) {
       setTests(testsData);
     }
   }, [testsData]);
-  
+
   // State for test settings dialog
   const [showTestSettingsDialog, setShowTestSettingsDialog] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
@@ -50,7 +55,7 @@ const AdminDashboard = () => {
   const [editStartDate, setEditStartDate] = useState("");
   const [editStartTime, setEditStartTime] = useState("");
   const [useStartDateTime, setUseStartDateTime] = useState(false);
-  
+
   // Group test attempts by batch/group for chart data
   const [chartData, setChartData] = useState([]);
   const [studentsData, setStudentsData] = useState([]);
@@ -59,26 +64,28 @@ const AdminDashboard = () => {
     totalPassed: 0,
     totalFailed: 0,
     passRate: 0,
-    failRate: 0
+    failRate: 0,
   });
-  
+
   useEffect(() => {
     if (testAttempts) {
       // Process test attempts into student data
-      const processedStudents = testAttempts.map(attempt => ({
+      const processedStudents = testAttempts.map((attempt) => ({
         id: attempt.id,
         name: `${attempt.user.firstName} ${attempt.user.lastName}`,
         rollNo: attempt.user.rollNumber || "N/A",
         group: attempt.user.batch || "N/A",
         marks: attempt.score || 0,
         total: 100, // Assuming total is 100
-        testTitle: attempt.test.title
+        testTitle: attempt.test.title,
       }));
-      
+
       setStudentsData(processedStudents);
-      
+
       // Calculate top performers
-      const sortedStudents = [...processedStudents].sort((a, b) => b.marks - a.marks);
+      const sortedStudents = [...processedStudents].sort(
+        (a, b) => b.marks - a.marks
+      );
       const top3 = sortedStudents.slice(0, 3).map((student, index) => ({
         rank: index + 1,
         name: student.name,
@@ -86,42 +93,44 @@ const AdminDashboard = () => {
         group: student.group,
         score: `${Math.round(student.marks)}%`,
       }));
-      
+
       setTopPerformers(top3);
-      
+
       // Group by batch/group for chart data
       const groupedByBatch = {};
-      processedStudents.forEach(student => {
+      processedStudents.forEach((student) => {
         const group = student.group;
         if (!groupedByBatch[group]) {
           groupedByBatch[group] = { group, passed: 0, failed: 0 };
         }
-        
+
         if (student.marks >= 40) {
           groupedByBatch[group].passed += 1;
         } else {
           groupedByBatch[group].failed += 1;
         }
       });
-      
+
       const chartDataArray = Object.values(groupedByBatch);
       setChartData(chartDataArray);
-      
+
       // Calculate overall stats
-      const totalPassed = processedStudents.filter(s => s.marks >= 40).length;
+      const totalPassed = processedStudents.filter((s) => s.marks >= 40).length;
       const totalFailed = processedStudents.length - totalPassed;
-      const passRate = processedStudents.length > 0 
-        ? (totalPassed / processedStudents.length * 100).toFixed(1) 
-        : 0;
-      const failRate = processedStudents.length > 0 
-        ? (totalFailed / processedStudents.length * 100).toFixed(1) 
-        : 0;
-      
+      const passRate =
+        processedStudents.length > 0
+          ? ((totalPassed / processedStudents.length) * 100).toFixed(1)
+          : 0;
+      const failRate =
+        processedStudents.length > 0
+          ? ((totalFailed / processedStudents.length) * 100).toFixed(1)
+          : 0;
+
       setStats({
         totalPassed,
         totalFailed,
         passRate,
-        failRate
+        failRate,
       });
     }
   }, [testAttempts]);
@@ -143,14 +152,14 @@ const AdminDashboard = () => {
   };
 
   const COLORS = ["#4CAF50", "#2196F3", "#FF9800", "#FFC107", "#F44336"];
-  
+
   // Format date for display
   const formatDate = () => {
     const date = new Date();
     return date.toLocaleDateString("en-US", {
       day: "numeric",
       month: "long",
-      year: "numeric"
+      year: "numeric",
     });
   };
 
@@ -161,22 +170,28 @@ const AdminDashboard = () => {
   // Function to handle test settings
   const openTestSettings = (test) => {
     // Make sure we're using the most up-to-date test data
-    const currentTest = tests.find(t => t.id === test.id) || test;
+    const currentTest = tests.find((t) => t.id === test.id) || test;
     setSelectedTest(currentTest);
-    
+
     // Set max attempts
-    setEditMaxAttempts(currentTest.maxAttempts === 20 ? "" : currentTest.maxAttempts.toString());
+    setEditMaxAttempts(
+      currentTest.maxAttempts === 20 ? "" : currentTest.maxAttempts.toString()
+    );
     setIsUnlimitedAttempts(currentTest.maxAttempts === 20);
-    
+
     // Set expiry duration and unit
-    setEditExpiryDuration(currentTest.expiryDuration === null ? "" : currentTest.expiryDuration.toString());
+    setEditExpiryDuration(
+      currentTest.expiryDuration === null
+        ? ""
+        : currentTest.expiryDuration.toString()
+    );
     setIsInfiniteExpiry(currentTest.expiryDuration === null);
     setEditExpiryUnit(currentTest.expiryUnit || "days");
-    
+
     // Set start date and time
     if (currentTest.startTime) {
       const startDate = new Date(currentTest.startTime);
-      setEditStartDate(startDate.toISOString().split('T')[0]);
+      setEditStartDate(startDate.toISOString().split("T")[0]);
       setEditStartTime(startDate.toTimeString().slice(0, 5));
       setUseStartDateTime(true);
     } else {
@@ -184,7 +199,7 @@ const AdminDashboard = () => {
       setEditStartTime("");
       setUseStartDateTime(false);
     }
-    
+
     setShowTestSettingsDialog(true);
   };
 
@@ -197,37 +212,37 @@ const AdminDashboard = () => {
   // Function to toggle test status (enable/disable)
   const toggleTestStatus = async () => {
     if (!selectedTest) return;
-    
+
     try {
       setUpdatingTest(true);
-      
+
       // Update the test status in the database
       await updateTestMutation.mutateAsync({
         id: selectedTest.id,
-        testData: { 
-          isActive: !selectedTest.isActive 
-        }
+        testData: {
+          isActive: !selectedTest.isActive,
+        },
       });
-      
+
       // Update the selected test in state
       const newIsActive = !selectedTest.isActive;
-      setSelectedTest(prev => ({
+      setSelectedTest((prev) => ({
         ...prev,
-        isActive: newIsActive
+        isActive: newIsActive,
       }));
-      
+
       // Update the test in the local tests list immediately
-      setTests(currentTests => 
-        currentTests.map(test => 
-          test.id === selectedTest.id 
-            ? { ...test, isActive: newIsActive } 
+      setTests((currentTests) =>
+        currentTests.map((test) =>
+          test.id === selectedTest.id
+            ? { ...test, isActive: newIsActive }
             : test
         )
       );
-      
+
       // Refetch tests in the background to ensure we have the latest data
       refetchTests();
-      
+
       setUpdatingTest(false);
     } catch (error) {
       console.error("Error toggling test status:", error);
@@ -238,37 +253,37 @@ const AdminDashboard = () => {
   // Function to release test results
   const releaseTestResults = async () => {
     if (!selectedTest) return;
-    
+
     try {
       setUpdatingTest(true);
-      
+
       // Update the test results release status in the database
       await publishTestMutation.mutateAsync({
         id: selectedTest.id,
-        scheduleData: { 
-          isPublished: true
-        }
+        scheduleData: {
+          isPublished: true,
+        },
       });
-      
+
       // Update the selected test in state
-      setSelectedTest(prev => ({
+      setSelectedTest((prev) => ({
         ...prev,
         isPublished: true,
-        status: 'COMPLETE'
+        status: "COMPLETE",
       }));
-      
+
       // Update the test in the local tests list immediately
-      setTests(currentTests => 
-        currentTests.map(test => 
-          test.id === selectedTest.id 
-            ? { ...test, isPublished: true, status: 'COMPLETE' } 
+      setTests((currentTests) =>
+        currentTests.map((test) =>
+          test.id === selectedTest.id
+            ? { ...test, isPublished: true, status: "COMPLETE" }
             : test
         )
       );
-      
+
       // Refetch tests in the background to ensure we have the latest data
       refetchTests();
-      
+
       setUpdatingTest(false);
     } catch (error) {
       console.error("Error releasing test results:", error);
@@ -278,35 +293,41 @@ const AdminDashboard = () => {
 
   // Function to navigate to create test page
   const navigateToCreateTest = () => {
-    navigate('/create-test');
+    navigate("/create-test");
   };
 
   // Function to update expiry duration
   const updateExpiryDuration = async () => {
     if (updatingTest) return;
-    
+
     try {
       setUpdatingTest(true);
-      
+
       const updatedTest = await updateTestMutation.mutateAsync({
         id: selectedTest.id,
         expiryDuration: isInfiniteExpiry ? null : parseInt(editExpiryDuration),
-        expiryUnit: editExpiryUnit
+        expiryUnit: editExpiryUnit,
       });
-      
+
       // Update local state
-      setTests(prev => prev.map(t => t.id === updatedTest.id ? {
-        ...t, 
-        expiryDuration: updatedTest.expiryDuration,
-        expiryUnit: updatedTest.expiryUnit
-      } : t));
-      
+      setTests((prev) =>
+        prev.map((t) =>
+          t.id === updatedTest.id
+            ? {
+                ...t,
+                expiryDuration: updatedTest.expiryDuration,
+                expiryUnit: updatedTest.expiryUnit,
+              }
+            : t
+        )
+      );
+
       setSelectedTest({
-        ...selectedTest, 
+        ...selectedTest,
         expiryDuration: updatedTest.expiryDuration,
-        expiryUnit: updatedTest.expiryUnit
+        expiryUnit: updatedTest.expiryUnit,
       });
-      
+
       // Show success message
       alert("Expiry duration updated successfully");
     } catch (error) {
@@ -316,20 +337,20 @@ const AdminDashboard = () => {
       setUpdatingTest(false);
     }
   };
-  
+
   // Function to update start date and time
   const updateStartDateTime = async () => {
     if (updatingTest) return;
-    
+
     try {
       setUpdatingTest(true);
-      
+
       let startDateTime = null;
       if (useStartDateTime && editStartDate) {
         const dateStr = editStartDate;
         const timeStr = editStartTime || "00:00";
         startDateTime = new Date(`${dateStr}T${timeStr}`);
-        
+
         // Validate the date is in the future
         if (startDateTime <= new Date()) {
           alert("Start date and time must be in the future");
@@ -337,23 +358,29 @@ const AdminDashboard = () => {
           return;
         }
       }
-      
+
       const updatedTest = await updateTestMutation.mutateAsync({
         id: selectedTest.id,
-        startTime: startDateTime
+        startTime: startDateTime,
       });
-      
+
       // Update local state
-      setTests(prev => prev.map(t => t.id === updatedTest.id ? {
-        ...t, 
-        startTime: updatedTest.startTime
-      } : t));
-      
+      setTests((prev) =>
+        prev.map((t) =>
+          t.id === updatedTest.id
+            ? {
+                ...t,
+                startTime: updatedTest.startTime,
+              }
+            : t
+        )
+      );
+
       setSelectedTest({
-        ...selectedTest, 
-        startTime: updatedTest.startTime
+        ...selectedTest,
+        startTime: updatedTest.startTime,
       });
-      
+
       // Show success message
       alert("Start date and time updated successfully");
     } catch (error) {
@@ -367,39 +394,41 @@ const AdminDashboard = () => {
   // Function to update max attempts
   const updateMaxAttempts = async () => {
     if (!selectedTest) return;
-    
+
     try {
       setUpdatingTest(true);
-      
+
       // Determine the max attempts value
-      const maxAttemptsValue = isUnlimitedAttempts ? 20 : parseInt(editMaxAttempts);
-      
+      const maxAttemptsValue = isUnlimitedAttempts
+        ? 20
+        : parseInt(editMaxAttempts);
+
       // Update the test max attempts in the database
       await updateTestMutation.mutateAsync({
         id: selectedTest.id,
-        testData: { 
-          maxAttempts: maxAttemptsValue
-        }
+        testData: {
+          maxAttempts: maxAttemptsValue,
+        },
       });
-      
+
       // Update the selected test in state
-      setSelectedTest(prev => ({
+      setSelectedTest((prev) => ({
         ...prev,
-        maxAttempts: maxAttemptsValue
+        maxAttempts: maxAttemptsValue,
       }));
-      
+
       // Update the test in the local tests list immediately
-      setTests(currentTests => 
-        currentTests.map(test => 
-          test.id === selectedTest.id 
-            ? { ...test, maxAttempts: maxAttemptsValue } 
+      setTests((currentTests) =>
+        currentTests.map((test) =>
+          test.id === selectedTest.id
+            ? { ...test, maxAttempts: maxAttemptsValue }
             : test
         )
       );
-      
+
       // Refetch tests in the background to ensure we have the latest data
       refetchTests();
-      
+
       setUpdatingTest(false);
     } catch (error) {
       console.error("Error updating max attempts:", error);
@@ -412,7 +441,9 @@ const AdminDashboard = () => {
       {/* Top Greeting Section - Moved above sidebar */}
       <div className="top-greeting">
         <div className="greeting-container">
-          <h1 className="greeting">Welcome back, {user?.firstName} {user?.lastName}</h1>
+          <h1 className="greeting">
+            Welcome back, {user?.firstName} {user?.lastName}
+          </h1>
           <p className="quote">
             "Education is the passport to the future, for tomorrow belongs to
             those who prepare for it today."
@@ -488,7 +519,9 @@ const AdminDashboard = () => {
           <div className="sidebar-footer">
             <div className="user-info">
               <div className="user-details">
-                <p className="user-name">{user?.firstName} {user?.lastName}</p>
+                <p className="user-name">
+                  {user?.firstName} {user?.lastName}
+                </p>
                 <p className="user-role">Administrator</p>
               </div>
             </div>
@@ -552,25 +585,25 @@ const AdminDashboard = () => {
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="no-data">No test data available to display chart</div>
+                    <div className="no-data">
+                      No test data available to display chart
+                    </div>
                   )}
                 </div>
                 <div className="stats-container">
                   <div className="stats-grid">
                     <div className="stat-card">
-                      <div className="icon">✅</div>
                       <div className="content">
-                        <h3>Students Passed</h3>
+                        <h3>Students Passed ✅</h3>
                         <p className="stats-number">{stats.totalPassed}</p>
-                        <p className="trend positive">{stats.passRate}% pass rate</p>
+                        <p className="trend positive">{stats.passRate}</p>
                       </div>
                     </div>
                     <div className="stat-card">
-                      <div className="icon">❌</div>
                       <div className="content">
-                        <h3>Students Failed</h3>
+                        <h3>Students Failed ❌</h3>
                         <p className="stats-number">{stats.totalFailed}</p>
-                        <p className="trend negative">{stats.failRate}% fail rate</p>
+                        <p className="trend negative">{stats.failRate}</p>
                       </div>
                     </div>
                   </div>
@@ -583,25 +616,29 @@ const AdminDashboard = () => {
                 <h2>🏆 Top Performers</h2>
                 <div className="performer-cards">
                   {topPerformers.length > 0 ? (
-                    topPerformers.map(({ rank, name, rollNo, group, score }) => (
-                      <div className="performer-card" key={rank}>
-                        <div className="card-content">
-                          <div className="rank-emoji">
-                            {rank === 1 && "🥇"}
-                            {rank === 2 && "🥈"}
-                            {rank === 3 && "🥉"}
-                          </div>
-                          <div className="performer-info">
-                            <h3>{name}</h3>
-                            <p className="roll-no">Roll No: {rollNo}</p>
-                            <p className="group">Group: {group}</p>
-                            <div className="score-badge">{score}</div>
+                    topPerformers.map(
+                      ({ rank, name, rollNo, group, score }) => (
+                        <div className="performer-card" key={rank}>
+                          <div className="card-content">
+                            <div className="rank-emoji">
+                              {rank === 1 && "🥇"}
+                              {rank === 2 && "🥈"}
+                              {rank === 3 && "🥉"}
+                            </div>
+                            <div className="performer-info">
+                              <h3>{name}</h3>
+                              <p className="roll-no">Roll No: {rollNo}</p>
+                              <p className="group">Group: {group}</p>
+                              <div className="score-badge">{score}</div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
+                      )
+                    )
                   ) : (
-                    <div className="no-data">No test data available to display top performers</div>
+                    <div className="no-data">
+                      No test data available to display top performers
+                    </div>
                   )}
                 </div>
 
@@ -612,14 +649,21 @@ const AdminDashboard = () => {
                       <div className="insight-icon">🚀</div>
                       <div className="insight-content">
                         <h4>Test Participation</h4>
-                        <p>{testAttempts?.length || 0} total test attempts recorded</p>
+                        <p>
+                          {testAttempts?.length || 0} total test attempts
+                          recorded
+                        </p>
                       </div>
                     </div>
                     <div className="insight-card">
                       <div className="insight-icon">📊</div>
                       <div className="insight-content">
                         <h4>Group Performance</h4>
-                        <p>{chartData.length > 0 ? `${chartData.length} groups participated in tests` : 'No group data available'}</p>
+                        <p>
+                          {chartData.length > 0
+                            ? `${chartData.length} groups participated in tests`
+                            : "No group data available"}
+                        </p>
                       </div>
                     </div>
                     <div className="insight-card">
@@ -629,7 +673,10 @@ const AdminDashboard = () => {
                         <p>
                           {studentsData.length > 0
                             ? `${Math.round(
-                                studentsData.reduce((sum, s) => sum + s.marks, 0) / studentsData.length
+                                studentsData.reduce(
+                                  (sum, s) => sum + s.marks,
+                                  0
+                                ) / studentsData.length
                               )}% average score`
                             : "No data available"}
                         </p>
@@ -648,8 +695,12 @@ const AdminDashboard = () => {
                   <div className="filter-dropdown">
                     <select className="filter-select">
                       <option value="all">All Groups</option>
-                      {Array.from(new Set(studentsData.map(s => s.group))).map(group => (
-                        <option key={group} value={group}>{group}</option>
+                      {Array.from(
+                        new Set(studentsData.map((s) => s.group))
+                      ).map((group) => (
+                        <option key={group} value={group}>
+                          {group}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -699,7 +750,9 @@ const AdminDashboard = () => {
                                   className="marks-bar"
                                   style={{
                                     width: `${student.marks}%`,
-                                    backgroundColor: getGradeColor(student.marks),
+                                    backgroundColor: getGradeColor(
+                                      student.marks
+                                    ),
                                   }}
                                 ></div>
                                 <span>
@@ -790,11 +843,15 @@ const AdminDashboard = () => {
                   <div className="analytics-card">
                     <h3>Student Engagement</h3>
                     <p className="analytics-insight">
-                      {new Set(studentsData.map(s => s.name)).size} unique students took tests
+                      {new Set(studentsData.map((s) => s.name)).size} unique
+                      students took tests
                     </p>
                     <p className="analytics-insight">
-                      {Math.round(testAttempts?.length / (new Set(studentsData.map(s => s.name)).size || 1))} 
-                      {" "}tests per student on average
+                      {Math.round(
+                        testAttempts?.length /
+                          (new Set(studentsData.map((s) => s.name)).size || 1)
+                      )}{" "}
+                      tests per student on average
                     </p>
                   </div>
                 </div>
@@ -809,17 +866,26 @@ const AdminDashboard = () => {
                       { label: "60-69%", range: [60, 69], class: "medium" },
                       { label: "50-59%", range: [50, 59], class: "hard" },
                       { label: "40-49%", range: [40, 49], class: "hard" },
-                      { label: "Below 40%", range: [0, 39], class: "very-hard" },
+                      {
+                        label: "Below 40%",
+                        range: [0, 39],
+                        class: "very-hard",
+                      },
                     ].map((range) => {
                       const count = studentsData.filter(
-                        (s) => s.marks >= range.range[0] && s.marks <= range.range[1]
+                        (s) =>
+                          s.marks >= range.range[0] && s.marks <= range.range[1]
                       ).length;
-                      const percentage = studentsData.length > 0 
-                        ? (count / studentsData.length) * 100 
-                        : 0;
-                      
+                      const percentage =
+                        studentsData.length > 0
+                          ? (count / studentsData.length) * 100
+                          : 0;
+
                       return (
-                        <div className="difficulty-bar-container" key={range.label}>
+                        <div
+                          className="difficulty-bar-container"
+                          key={range.label}
+                        >
                           <div className="difficulty-label">{range.label}</div>
                           <div className="difficulty-track">
                             <div
@@ -844,8 +910,8 @@ const AdminDashboard = () => {
                       <div className="recommendation-content">
                         <h4>Focus Areas</h4>
                         <p>
-                          {stats.failRate > 30 
-                            ? "Consider additional review sessions to improve pass rate" 
+                          {stats.failRate > 30
+                            ? "Consider additional review sessions to improve pass rate"
                             : "Continue with current teaching approach"}
                         </p>
                       </div>
@@ -855,7 +921,8 @@ const AdminDashboard = () => {
                       <div className="recommendation-content">
                         <h4>Group Study</h4>
                         <p>
-                          {chartData.length > 0 && chartData.some(g => g.failed > g.passed)
+                          {chartData.length > 0 &&
+                          chartData.some((g) => g.failed > g.passed)
                             ? "Some groups need additional support - consider peer learning"
                             : "All groups are performing well"}
                         </p>
@@ -881,17 +948,17 @@ const AdminDashboard = () => {
               <div className="tests-section">
                 <div className="section-header">
                   <h2>📋 Manage Tests</h2>
-                  <button 
+                  <button
                     className="create-test-button"
                     onClick={navigateToCreateTest}
                   >
                     <span>+</span> Create New Test
                   </button>
                 </div>
-                
+
                 {tests && tests.length > 0 ? (
                   <div className="tests-list">
-                    {tests.map(test => (
+                    {tests.map((test) => (
                       <div key={test.id} className="test-card">
                         <div className="test-info">
                           <h3>{test.title}</h3>
@@ -906,39 +973,55 @@ const AdminDashboard = () => {
                             </span>
                             <span className="test-detail">
                               <span className="detail-icon">🔄</span>
-                              {test.maxAttempts === 20 ? 'Unlimited' : test.maxAttempts} attempts
+                              {test.maxAttempts === 20
+                                ? "Unlimited"
+                                : test.maxAttempts}{" "}
+                              attempts
                             </span>
                             <span className="test-detail">
                               <span className="detail-icon">📅</span>
-                              {test.expiryDuration 
-                                ? `${test.expiryDuration} ${test.expiryUnit || 'days'}` 
-                                : 'No expiry'}
+                              {test.expiryDuration
+                                ? `${test.expiryDuration} ${
+                                    test.expiryUnit || "days"
+                                  }`
+                                : "No expiry"}
                             </span>
-                            
+
                             {test.startTime && (
                               <span className="test-detail">
                                 <span className="detail-icon">🕒</span>
-                                Starts: {new Date(test.startTime).toLocaleDateString()}
+                                Starts:{" "}
+                                {new Date(test.startTime).toLocaleDateString()}
                               </span>
                             )}
-                            <span className={`test-status ${
-                              test.isPublished ? 'complete' : 
-                              test.status === 'EXPIRED' ? 'expired' : 
-                              test.isActive ? 'active' : 'inactive'
-                            }`}>
-                              {test.isPublished ? 'Complete' : 
-                               test.status === 'EXPIRED' ? 'Expired' : 
-                               test.isActive ? 'Active' : 'Inactive'}
+                            <span
+                              className={`test-status ${
+                                test.isPublished
+                                  ? "complete"
+                                  : test.status === "EXPIRED"
+                                  ? "expired"
+                                  : test.isActive
+                                  ? "active"
+                                  : "inactive"
+                              }`}
+                            >
+                              {test.isPublished
+                                ? "Complete"
+                                : test.status === "EXPIRED"
+                                ? "Expired"
+                                : test.isActive
+                                ? "Active"
+                                : "Inactive"}
                             </span>
                           </div>
                           <p className="test-description">
-                            {test.description?.length > 100 
-                              ? test.description.substring(0, 100) + '...' 
-                              : test.description || 'No description provided'}
+                            {test.description?.length > 100
+                              ? test.description.substring(0, 100) + "..."
+                              : test.description || "No description provided"}
                           </p>
                         </div>
                         <div className="test-actions">
-                          <button 
+                          <button
                             className="settings-button"
                             onClick={() => openTestSettings(test)}
                           >
@@ -950,7 +1033,10 @@ const AdminDashboard = () => {
                   </div>
                 ) : (
                   <div className="no-tests">
-                    <p>No tests created yet. Click the button above to create your first test.</p>
+                    <p>
+                      No tests created yet. Click the button above to create
+                      your first test.
+                    </p>
                   </div>
                 )}
               </div>
@@ -965,59 +1051,74 @@ const AdminDashboard = () => {
           <div className="dialog-container">
             <div className="dialog-header">
               <h3>Test Settings: {selectedTest.title}</h3>
-              <button className="close-button" onClick={closeTestSettings}>×</button>
+              <button className="close-button" onClick={closeTestSettings}>
+                ×
+              </button>
             </div>
             <div className="dialog-content">
               {selectedTest.isPublished && (
                 <div className="setting-item">
                   <div className="setting-info">
                     <h4>Test Status</h4>
-                    <p className="status-complete">This test is complete and results are published. Settings cannot be modified.</p>
+                    <p className="status-complete">
+                      This test is complete and results are published. Settings
+                      cannot be modified.
+                    </p>
                   </div>
                 </div>
               )}
-              
+
               <div className="setting-item">
                 <div className="setting-info">
                   <h4>Test Status</h4>
                   <p>Enable or disable this test for students</p>
                 </div>
                 <div className="setting-action">
-                  <button 
-                    className={`toggle-button ${selectedTest.isActive ? 'active' : 'inactive'}`}
+                  <button
+                    className={`toggle-button ${
+                      selectedTest.isActive ? "active" : "inactive"
+                    }`}
                     onClick={toggleTestStatus}
                     disabled={updatingTest || selectedTest.isPublished}
                   >
-                    {updatingTest ? 'Updating...' : selectedTest.isActive ? 'Enabled' : 'Disabled'}
+                    {updatingTest
+                      ? "Updating..."
+                      : selectedTest.isActive
+                      ? "Enabled"
+                      : "Disabled"}
                   </button>
                 </div>
               </div>
-              
+
               <div className="setting-item">
                 <div className="setting-info">
                   <h4>Test Results</h4>
                   <p>Release results to all students who attempted this test</p>
                 </div>
                 <div className="setting-action">
-                  <button 
-                    className={`action-button ${selectedTest.isPublished ? 'disabled' : ''}`}
+                  <button
+                    className={`action-button ${
+                      selectedTest.isPublished ? "disabled" : ""
+                    }`}
                     onClick={releaseTestResults}
                     disabled={selectedTest.isPublished || updatingTest}
                   >
-                    {updatingTest ? 'Updating...' : selectedTest.isPublished ? 'Results Published' : 'Publish Results'}
+                    {updatingTest
+                      ? "Updating..."
+                      : selectedTest.isPublished
+                      ? "Results Published"
+                      : "Publish Results"}
                   </button>
                 </div>
               </div>
-              
+
               <div className="setting-item">
                 <div className="setting-info">
                   <h4>Test Analytics</h4>
                   <p>View detailed analytics for this test</p>
                 </div>
                 <div className="setting-action">
-                  <button className="action-button">
-                    View Analytics
-                  </button>
+                  <button className="action-button">View Analytics</button>
                 </div>
               </div>
 
@@ -1044,13 +1145,21 @@ const AdminDashboard = () => {
                         value={editExpiryDuration}
                         onChange={(e) => setEditExpiryDuration(e.target.value)}
                         min="1"
-                        disabled={isInfiniteExpiry || updatingTest || selectedTest.isPublished}
+                        disabled={
+                          isInfiniteExpiry ||
+                          updatingTest ||
+                          selectedTest.isPublished
+                        }
                         className="number-input"
                       />
-                      <select 
+                      <select
                         value={editExpiryUnit}
                         onChange={(e) => setEditExpiryUnit(e.target.value)}
-                        disabled={isInfiniteExpiry || updatingTest || selectedTest.isPublished}
+                        disabled={
+                          isInfiniteExpiry ||
+                          updatingTest ||
+                          selectedTest.isPublished
+                        }
                         className="expiry-unit-select"
                       >
                         <option value="minutes">Minutes</option>
@@ -1059,16 +1168,16 @@ const AdminDashboard = () => {
                       </select>
                     </div>
                   )}
-                  <button 
+                  <button
                     className="action-button"
                     onClick={updateExpiryDuration}
                     disabled={updatingTest || selectedTest.isPublished}
                   >
-                    {updatingTest ? 'Updating...' : 'Update'}
+                    {updatingTest ? "Updating..." : "Update"}
                   </button>
                 </div>
               </div>
-              
+
               <div className="setting-item">
                 <div className="setting-info">
                   <h4>Start Date & Time</h4>
@@ -1094,7 +1203,7 @@ const AdminDashboard = () => {
                           id="start-date"
                           value={editStartDate}
                           onChange={(e) => setEditStartDate(e.target.value)}
-                          min={new Date().toISOString().split('T')[0]}
+                          min={new Date().toISOString().split("T")[0]}
                           disabled={updatingTest || selectedTest.isPublished}
                         />
                       </div>
@@ -1110,18 +1219,25 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   )}
-                  <button 
+                  <button
                     className="action-button"
                     onClick={updateStartDateTime}
-                    disabled={updatingTest || selectedTest.isPublished || !useStartDateTime || !editStartDate}
+                    disabled={
+                      updatingTest ||
+                      selectedTest.isPublished ||
+                      !useStartDateTime ||
+                      !editStartDate
+                    }
                   >
-                    {updatingTest ? 'Updating...' : 'Update'}
+                    {updatingTest ? "Updating..." : "Update"}
                   </button>
                 </div>
               </div>
             </div>
             <div className="dialog-footer">
-              <button className="cancel-button" onClick={closeTestSettings}>Close</button>
+              <button className="cancel-button" onClick={closeTestSettings}>
+                Close
+              </button>
             </div>
           </div>
         </div>

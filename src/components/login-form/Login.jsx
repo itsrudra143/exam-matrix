@@ -6,7 +6,7 @@ import "./login.css";
 const LoginForm = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+
   const [formData, setState] = useState({
     email: "",
     password: "",
@@ -24,15 +24,15 @@ const LoginForm = () => {
       ...formData,
       [name]: type === "checkbox" ? checked : value,
     });
-    
+
     // Clear errors when field is changed
     if (errors[name]) {
       setErrors({
         ...errors,
-        [name]: ""
+        [name]: "",
       });
     }
-    
+
     // Clear API error when form is changed
     if (apiError) {
       setApiError("");
@@ -65,20 +65,20 @@ const LoginForm = () => {
       try {
         setIsSubmitting(true);
         setApiError("");
-        
+
         // Call login API
         await login({
           email: formData.email,
-          password: formData.password
+          password: formData.password,
         });
-        
+
         // Redirect to dashboard on success
         navigate("/dashboard");
       } catch (error) {
         console.error("Login error:", error);
         setApiError(
-          error.response?.data?.message || 
-          "Login failed. Please check your credentials and try again."
+          error.response?.data?.message ||
+            "Login failed. Please check your credentials and try again."
         );
       } finally {
         setIsSubmitting(false);
@@ -101,22 +101,18 @@ const LoginForm = () => {
           <p>Sign in to your account</p>
         </div>
 
-        {apiError && (
-          <div className="error-alert">
-            {apiError}
-          </div>
-        )}
+        {apiError && <div className="error-alert">{apiError}</div>}
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <div className="input-container">
-              <i className="icon icon-user"></i>
+              {/* <i className="icon icon-user"></i> */}
               <input
                 type="email"
                 id="email"
                 name="email"
-                placeholder="Enter your email"
+                placeholder="👤Enter your email"
                 value={formData.email}
                 onChange={handleChange}
                 className={errors.email ? "error" : ""}
@@ -131,12 +127,12 @@ const LoginForm = () => {
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <div className="input-container">
-              <i className="icon icon-lock"></i>
+              {/* <i className="icon icon-lock"></i> */}
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
                 name="password"
-                placeholder="Enter your password"
+                placeholder="🔒Enter your password"
                 value={formData.password}
                 onChange={handleChange}
                 className={errors.password ? "error" : ""}
@@ -174,8 +170,8 @@ const LoginForm = () => {
             </Link>
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="login-button"
             disabled={isSubmitting}
           >

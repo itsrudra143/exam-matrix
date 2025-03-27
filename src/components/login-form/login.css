@@ -1,11 +1,9 @@
-/* Enhanced login.css - External stylesheet for the login form */
-
 /* Reset and global styles */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', 'Roboto', sans-serif;
+  font-family: "Inter", "Roboto", sans-serif;
 }
 
 body {
@@ -96,35 +94,21 @@ body {
   align-items: center;
 }
 
-.icon {
-  position: absolute;
-  left: 12px;
-  width: 20px;
-  height: 20px;
-  color: #a0aec0;
-}
-
-.icon-user:before {
-  content: "👤";
-}
-
-.icon-lock:before {
-  content: "🔒";
-}
-
 .form-group input[type="text"],
-.form-group input[type="password"] {
+.form-group input[type="password"],
+.form-group input[type="email"] {
   width: 100%;
-  padding: 14px 14px 14px 40px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  padding: 14px 14px 14px 5px;
+  border-radius: 8px;  border: 1px solid #e2e8f0;
+
   font-size: 15px;
   transition: all 0.3s ease;
   background-color: #f8fafc;
 }
 
 .form-group input[type="text"]:focus,
-.form-group input[type="password"]:focus {
+.form-group input[type="password"]:focus,
+.form-group input[type="email"]:focus {
   border-color: #8e54e9;
   background-color: #fff;
   box-shadow: 0 0 0 3px rgba(142, 84, 233, 0.15);
@@ -152,6 +136,7 @@ body {
   color: #718096;
   cursor: pointer;
   padding: 4px;
+  z-index: 10;
 }
 
 .toggle-password:hover {
@@ -190,7 +175,7 @@ body {
 }
 
 .checkbox-group input[type="checkbox"]:checked::after {
-  content: '✓';
+  content: "✓";
   position: absolute;
   color: white;
   font-size: 12px;
@@ -255,7 +240,7 @@ body {
 
 .divider::before,
 .divider::after {
-  content: '';
+  content: "";
   flex: 1;
   border-bottom: 1px solid #e2e8f0;
 }
@@ -296,12 +281,12 @@ body {
 }
 
 .social-button.google {
-  color: #EA4335;
+  color: #ea4335;
   border-color: rgba(234, 67, 53, 0.3);
 }
 
 .social-button.microsoft {
-  color: #0078D4;
+  color: #0078d4;
   border-color: rgba(0, 120, 212, 0.3);
 }
 
@@ -337,13 +322,13 @@ body {
     max-width: 100%;
     border-radius: 12px;
   }
-  
+
   .form-footer {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .forgot-password {
     margin-left: 26px;
   }
